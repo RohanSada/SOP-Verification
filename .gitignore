@@ -16,12 +16,13 @@ venv/
 
 # Data, caches and run outputs never go into git (IMPACT is CC BY-NC-SA 4.0:
 # no redistribution of data, frames or derived features).
-data/
-cache/
-runs/
-exports/
-scratch/
-downloads/
+# Anchored to the repo root: an unanchored `data/` also matched the code package src/sopverify/data/.
+/data/
+/cache/
+/runs/
+/exports/
+/scratch/
+/downloads/
 *.npz
 *.npy
 *.parquet
