@@ -12,7 +12,8 @@ grinder reassembly, front view), but everything specific to one procedure lives 
 (`procedures/<name>/`). See [`spec.md`](spec.md) for the full specification.
 
 **Status:** code for every milestone is in place and tested. The IMPACT procedure package is a **draft awaiting review**,
-and GPU experiments run in the Colab notebooks. See [`docs/PROGRESS.md`](docs/PROGRESS.md).
+and GPU experiments run in the Colab notebooks. See [`docs/PROGRESS.md`](docs/PROGRESS.md), and
+[`docs/RUNBOOK.md`](docs/RUNBOOK.md) for exactly what to run and what to send back.
 
 ## Quickstart (Google Colab, A100)
 

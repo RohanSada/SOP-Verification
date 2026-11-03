@@ -67,3 +67,33 @@ def test_experiment_base_overrides(repo):
     assert ov == {"features.crop": "full", "demos.k": 3}
     exp = load_experiment(repo / "configs" / "experiments" / "E3_scorers.yaml", overrides=ov)
     assert all(c.features.crop == "full" and c.demos.k == 3 for c in exp.variants.values())
+
+
+def test_copy_github_annotations(tmp_path):
+    from sopverify.colab import copy_github_annotations
+
+    src = tmp_path / "dataset"
+    for rel in ("ASR/annotations/X_front_asr.json", "ASR/annotations/X_left_asr.json", "PSR/labels/train/X_front/PSR_labels.csv",
+                "TAS/groundTruth_TAS-S/X_front.txt", "TAS/groundTruth_TAS-S/X_ego.txt", "TAS/mapping_TAS-S.txt"):
+        (src / rel).parent.mkdir(parents=True, exist_ok=True)
+        (src / rel).write_text("x")
+    n = copy_github_annotations(str(src), str(tmp_path / "out"))
+    assert n == 4 and not (tmp_path / "out/ASR/annotations/X_left_asr.json").exists()
+
+
+def test_pick_best(tmp_path):
+    from sopverify.eval.tables import pick_best
+    from sopverify.utils import write_json, write_yaml
+
+    def run(name, rec, fa):
+        d = tmp_path / name
+        res = {"dev": {"all": {"all": {"nd_recall": {"mean": rec}, "nd_f1": {"mean": rec}, "fa_per_compliant": {"mean": fa},
+                                       "review_rate": {"mean": 0.1}}}}}
+        write_json(d / "metrics.json", {"experiment": "E2", "variant": name, "run_name": name, "results": res})
+        write_yaml(d / "config.yaml", {"features": {"crop": name}})
+
+    run("a", 0.95, 3.0)   # best recall but too many false alarms
+    run("b", 0.80, 0.5)
+    run("c", 0.70, 0.2)
+    best = pick_best(tmp_path, "E2")
+    assert best["variant"] == "b" and best["config"]["features"]["crop"] == "b"

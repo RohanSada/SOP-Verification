@@ -95,14 +95,24 @@ print("metadata files:", len(cat.index.metadata_files))
 for p in cat.index.metadata_files[:20]:
     print("\\n==", p); print(open(p, errors="ignore").read()[:1500])
 print("\\nexpertise parsed:", cat.expertise)'''),
-    md("### 4. Pool summary 📋"),
+    md("### 4. Pool summary 📋\nExpect **45 executions, 13 participants**. If the count is far lower, the next cell "
+       "copies the same v1.1 annotations from the IMPACT GitHub repo (front view only, ~30 MB) and re-counts."),
     code('!sopverify data summarize --out "$SOPVERIFY_EXPORTS/pool_summary.csv"'),
+    code('''from sopverify.colab import copy_github_annotations
+n = len(Catalog.from_paths(os.environ["SOPVERIFY_DATA_ROOT"], None).execution_ids())
+print("pool executions recognised:", n)
+if n < 40:
+    !rm -rf /content/scratch/IMPACT && git clone -q --depth 1 https://github.com/Kratos-Wen/IMPACT.git /content/scratch/IMPACT
+    copied = copy_github_annotations("/content/scratch/IMPACT/dataset", os.environ["SOPVERIFY_DATA_ROOT"] + "/annotations_github")
+    print("copied", copied, "files from the IMPACT GitHub repo")
+    cat = Catalog.from_paths(os.environ["SOPVERIFY_DATA_ROOT"], None)
+    print("pool executions now:", len(cat.execution_ids()))'''),
     md("### 5. Quick-start sample → adapter tests on real files"),
     code('''!sopverify data download sample
-import glob
-cands = glob.glob("/content/scratch/impact_sample/**/annotations", recursive=True) or ["/content/scratch/impact_sample"]
-os.environ["SOPVERIFY_TEST_ANNOTATIONS"] = cands[0]; print(cands[0])
-!python -m pytest -q -m data 2>&1 | tail -5'''),
+!ls /content/scratch/impact_sample
+# The sample root holds annotations, videos and features: the data tests use all three.
+os.environ["SOPVERIFY_TEST_ANNOTATIONS"] = "/content/scratch/impact_sample"
+!python -m pytest -q -o addopts="" -m data -rs 2>&1 | tail -8'''),
     md("### 6. What is inside the big bundles? (zip directory only) 📋"),
     code('''from sopverify.data.impact.download import remote_listing
 pool = cat.execution_ids()
@@ -131,6 +141,8 @@ df = pd.DataFrame(rows); print(df.to_string())
 print(df[["w", "h", "fps"]].value_counts() if "w" in df else "no videos")
 if "feat_T" in df: print("feat_T - asr_frames:", (df.feat_T - df.asr_frames).describe())'''),
     code('!sopverify data summarize | tail -3\n!du -sh "$SOPVERIFY_DATA_ROOT"'),
+    md("### 9. Done 📋\nSend back: the outputs of steps 2, 3, 4, 6 and 8, plus the two lines above. "
+       "The files `inventory_summary.md` and `pool_summary.csv` are also saved in `MyDrive/sopverify/exports/`."),
 ]
 
 NOTEBOOKS["02_extract_features"] = [
@@ -149,11 +161,15 @@ from sopverify.video.roi import overlay_box
 cat = Catalog.from_paths(os.environ["SOPVERIFY_DATA_ROOT"], None)
 proc = load_procedure("procedures/impact_reassembly_A")
 BOX = proc.roi.box          # try other boxes here, e.g. [420, 280, 520, 400]
+from PIL import Image
 ids = cat.execution_ids()
-for e, t in [(ids[0], 20), (ids[len(ids) // 2], 120), (ids[-1], 200)]:
+for i, (e, t) in enumerate([(ids[0], 20), (ids[len(ids) // 2], 120), (ids[-1], 200)]):
     ref = cat.ref(e)
     fr = read_frames_at(ref.video_path, [min(t, ref.duration_s - 1)])[0]
-    show(overlay_box(fr, BOX), f"{e} t={t}s  box={BOX}")'''),
+    img = overlay_box(fr, BOX)
+    show(img, f"{e} t={t}s  box={BOX}")
+    Image.fromarray(img).save(f"{os.environ['SOPVERIFY_EXPORTS']}/roi_preview_{i}.jpg", quality=85)
+print("saved roi_preview_0..2.jpg in MyDrive/sopverify/exports/")'''),
     md("### 2. Features (resumable). Target: DINOv2-base < 2 min per 20-min video on A100, excluding decode."),
     code("!sopverify features extract --crop roi"),
     code("!sopverify features extract --crop full"),
@@ -197,24 +213,31 @@ After E2 and E3, pass the winners to later experiments with `--set` (shown below
     code("!sopverify eval -c configs/experiments/E0_oracle.yaml\n!sopverify eval -c configs/experiments/E1_time_prior.yaml"),
     md("### E2 features (linear probe)"),
     code("!sopverify eval -c configs/experiments/E2_features.yaml"),
-    md("### E3 scorers: set the features that won E2\nExamples: `--set features.crop=full` or "
-       "`--set features.extractor=shipped_videomaev2`."),
-    code('BEST_FEATURES = "--set features.extractor=dinov2 --set features.crop=roi"   # edit after E2\n'
-         '!sopverify eval -c configs/experiments/E3_scorers.yaml $BEST_FEATURES'),
-    md("### E4–E6: set the best scorer too"),
-    code('BEST = BEST_FEATURES + " --set scorer.name=linear_probe"   # edit after E3\n'
-         '!sopverify eval -c configs/experiments/E4_num_demos.yaml $BEST\n'
-         '!sopverify eval -c configs/experiments/E5_granularity.yaml $BEST\n'
-         '!sopverify eval -c configs/experiments/E6_graph.yaml $BEST'),
+    md("### E3 scorers on the E2 winner\nThe winner is picked on the **dev** split only (targets first, then "
+       "not-done recall, then F1)."),
+    code('''from sopverify.eval.tables import pick_best
+RUNS = os.environ["SOPVERIFY_RUNS"]
+b2 = pick_best(RUNS, "E2_features"); print("E2 winner:", b2["variant"], b2["dev"])
+f = b2["config"]["features"]
+BEST_FEATURES = f"--set features.extractor={f['extractor']} --set features.crop={f['crop']}"
+print(BEST_FEATURES)
+!sopverify eval -c configs/experiments/E3_scorers.yaml $BEST_FEATURES'''),
+    md("### E4–E6 on the E2 × E3 winner"),
+    code('''b3 = pick_best(RUNS, "E3_scorers"); print("E3 winner:", b3["variant"], b3["dev"])
+BEST = BEST_FEATURES + f" --set scorer.name={b3['config']['scorer']['name']}"
+print(BEST)
+!sopverify eval -c configs/experiments/E4_num_demos.yaml $BEST
+!sopverify eval -c configs/experiments/E5_granularity.yaml $BEST
+!sopverify eval -c configs/experiments/E6_graph.yaml $BEST'''),
     md("### Tables 📋"),
     code('!sopverify tables --out "$SOPVERIFY_EXPORTS/RESULTS_tables.md"\n'
          'from IPython.display import Markdown, display\n'
          'display(Markdown(open(os.environ["SOPVERIFY_EXPORTS"] + "/RESULTS_tables.md").read()))'),
-    md("### Save the best configuration\nPick the best run (dev numbers) and copy its config; commit it as `configs/best.yaml`."),
-    code('''import shutil, glob
-BEST_RUN = "E3_scorers__linear_probe"   # edit
-src = f"{os.environ['SOPVERIFY_RUNS']}/{BEST_RUN}/config.yaml"
-shutil.copy(src, f"{os.environ['SOPVERIFY_EXPORTS']}/best.yaml"); print(open(src).read()[:2000])'''),
+    md("### Save the best configuration 📋\nThe E3 winner's full config (tuned thresholds included) becomes the "
+       "candidate `configs/best.yaml`. Send me `exports/best.yaml` together with the tables."),
+    code('''import shutil
+shutil.copy(b3["config_path"], f"{os.environ['SOPVERIFY_EXPORTS']}/best.yaml")
+print(open(b3["config_path"]).read())'''),
 ]
 
 NOTEBOOKS["04_vlm"] = [
@@ -222,7 +245,9 @@ NOTEBOOKS["04_vlm"] = [
 Use a **fresh A100 runtime**: vLLM installs its own PyTorch build. Budget: a full VLM-scorer run over all test
 executions should take < 2 h; runtime per video and JSON parse failures are written to each run's `metrics.json`."""),
     *setup_cells("app,vlm,dev"),
-    code("!pip install -q vllm   # may take a few minutes; restart the runtime if torch was upgraded, then re-run setup"),
+    md("### Install vLLM\nTakes a few minutes and replaces PyTorch. When it finishes: **Runtime → Restart session**, "
+       "then run the Setup cells again (skip this install cell)."),
+    code("!pip install -q vllm\n!pip show vllm torch | grep -E '^(Name|Version)'"),
     md("### Verify the model id"),
     code('''from huggingface_hub import model_info
 from sopverify.config import load_config

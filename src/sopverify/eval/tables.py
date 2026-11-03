@@ -141,3 +141,31 @@ def inject(md_path: str | Path, tables_md: str) -> None:
         text += f"\n{BEGIN}\n{END}\n"
     text = re.sub(re.escape(BEGIN) + r".*?" + re.escape(END), f"{BEGIN}\n{tables_md}\n{END}", text, flags=re.DOTALL)
     p.write_text(text)
+
+
+def pick_best(runs_root: str | Path, experiment: str, targets=None) -> dict[str, Any]:
+    """Best variant of an experiment by DEV results only (same rule as threshold tuning, D-018):
+    meet the false-alarm and review-rate targets first, then maximise not-done recall, then F1."""
+    from sopverify.config import TargetsConfig
+    from sopverify.utils import read_yaml
+
+    t = targets or TargetsConfig()
+    runs = load_runs(runs_root, [experiment])
+    if not runs:
+        raise FileNotFoundError(f"no runs of {experiment} under {runs_root}")
+
+    def mean(m: dict, k: str) -> float:
+        v = m.get("results", {}).get("dev", {}).get("all", {}).get("all", {}).get(k, {}).get("mean")
+        return float("nan") if v is None else float(v)
+
+    def key(m: dict) -> tuple:
+        fa, rv, rec, f1 = (mean(m, k) for k in ("fa_per_compliant", "review_rate", "nd_recall", "nd_f1"))
+        fa = 99.0 if math.isnan(fa) else fa
+        viol = max(0.0, fa - t.max_false_alarms_per_compliant) + max(0.0, (0 if math.isnan(rv) else rv) - t.max_review_rate)
+        return (viol > 0, viol, -(0 if math.isnan(rec) else rec), -(0 if math.isnan(f1) else f1))
+
+    best = sorted(runs, key=key)[0]
+    cfg_path = Path(best["_dir"]) / "config.yaml"
+    return {"variant": best.get("variant"), "run_name": best.get("run_name"), "config_path": str(cfg_path),
+            "config": read_yaml(cfg_path), "dev": {k: mean(best, k) for k in
+                                                   ("nd_recall", "nd_f1", "fa_per_compliant", "review_rate")}}

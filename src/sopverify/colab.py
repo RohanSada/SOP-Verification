@@ -37,3 +37,35 @@ def show(img, title: str | None = None, width: int = 12) -> None:
     if title:
         plt.title(title)
     plt.show()
+
+
+GITHUB_ANNOTATION_DIRS = [
+    ("PSR/labels", None), ("ASR/annotations", "_front_asr.json"), ("TAS/groundTruth_TAS-S", "_front.txt"),
+    ("PPR/groundTruth_PPR_L", "_front.txt"), ("PPR/groundTruth_PPR_R", "_front.txt"),
+    ("ATR/groundTruth_ATR_L", "_front.npy"), ("ATR/groundTruth_ATR_R", "_front.npy"),
+]
+GITHUB_ANNOTATION_FILES = ["TAS/mapping_TAS-S.txt", "PPR/mapping_PPR.txt", "ATR/mapping_ATR.txt"]
+
+
+def copy_github_annotations(dataset_dir: str, dest: str) -> int:
+    """Copy the front-view annotations from a clone of the IMPACT GitHub repo's `dataset/` folder.
+
+    Fallback when the release bundle's layout is not recognised. Returns the number of files copied.
+    """
+    import shutil
+
+    src, dst = Path(dataset_dir), Path(dest)
+    n = 0
+    for rel, suffix in GITHUB_ANNOTATION_DIRS:
+        for f in (src / rel).rglob("*"):
+            if f.is_file() and (suffix is None or f.name.endswith(suffix)):
+                out = dst / f.relative_to(src)
+                out.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(f, out)
+                n += 1
+    for rel in GITHUB_ANNOTATION_FILES:
+        if (src / rel).exists():
+            (dst / rel).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src / rel, dst / rel)
+            n += 1
+    return n
