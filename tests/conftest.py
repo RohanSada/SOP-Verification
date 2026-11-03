@@ -30,11 +30,11 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(skip_gpu)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def repo() -> Path:
     return REPO
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def impact_annotations() -> Path:
     return Path(os.environ.get("SOPVERIFY_TEST_ANNOTATIONS") or os.environ["SOPVERIFY_ANNOTATIONS"])

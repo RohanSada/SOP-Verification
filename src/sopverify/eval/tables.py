@@ -1,0 +1,143 @@
+"""Aggregate run folders (metrics.json) into Markdown tables for docs/RESULTS.md."""
+
+from __future__ import annotations
+
+import math
+import re
+from pathlib import Path
+from typing import Any
+
+import pandas as pd
+
+from sopverify.utils import read_json
+
+HEADLINE = [
+    ("nd_recall", "ND rec"), ("nd_precision", "ND prec"), ("nd_f1", "ND F1"), ("nd_recall_strict", "ND rec (strict)"),
+    ("done_precision", "DONE prec"), ("done_recall", "DONE rec"), ("coverage", "Coverage"),
+    ("timing_mae_s", "MAE s"), ("within_15s", "±15 s"), ("fa_per_compliant", "FA/compliant"),
+    ("video_acc_decided", "Video acc"), ("review_rate", "Review"), ("order_recall", "Order rec"),
+    ("order_precision", "Order prec"), ("order_support", "Order n"),
+]
+BEGIN, END = "<!-- TABLES:BEGIN -->", "<!-- TABLES:END -->"
+
+
+def _fmt(cell: dict[str, float] | None, digits: int = 2) -> str:
+    if not cell:
+        return "–"
+    m, s = cell.get("mean", float("nan")), cell.get("std", float("nan"))
+    if m is None or (isinstance(m, float) and math.isnan(m)):
+        return "–"
+    if s is None or (isinstance(s, float) and math.isnan(s)) or cell.get("n_seeds", 1) <= 1:
+        return f"{m:.{digits}f}"
+    return f"{m:.{digits}f} ± {s:.{digits}f}"
+
+
+def load_runs(runs_root: str | Path, experiments: list[str] | None = None) -> list[dict[str, Any]]:
+    out = []
+    for p in sorted(Path(runs_root).glob("*/metrics.json")):
+        m = read_json(p)
+        m["_dir"] = str(p.parent)
+        if experiments and m.get("experiment") not in experiments:
+            continue
+        out.append(m)
+    return out
+
+
+def headline_table(runs: list[dict[str, Any]], split: str = "test", kind: str = "all", who: str = "all") -> str:
+    cols = ["Experiment / variant", "Scorer", "Steps", "Graph"] + [h for _, h in HEADLINE]
+    lines = ["| " + " | ".join(cols) + " |", "|" + "---|" * len(cols)]
+    for m in runs:
+        agg = m.get("results", {}).get(split, {}).get(kind, {}).get(who, {})
+        graph = m.get("graph_source", "")
+        if m.get("oracle_procedure_knowledge"):
+            graph += " (oracle knowledge)"
+        row = [f"{m.get('experiment', '')} / {m.get('variant', '')}", f"`{m.get('scorer', '')}`", m.get("step_set", ""), graph]
+        for key, _ in HEADLINE:
+            row.append(_fmt(agg.get(key), 0 if key == "order_support" else 2))
+        lines.append("| " + " | ".join(str(x) for x in row) + " |")
+    return "\n".join(lines)
+
+
+def seen_unseen_table(runs: list[dict[str, Any]], split: str = "test") -> str:
+    keys = [("nd_recall", "ND rec"), ("fa_per_compliant", "FA/compliant"), ("timing_mae_s", "MAE s"),
+            ("review_rate", "Review"), ("video_acc_decided", "Video acc")]
+    cols = ["Experiment / variant", "Participants"] + [h for _, h in keys]
+    lines = ["| " + " | ".join(cols) + " |", "|" + "---|" * len(cols)]
+    for m in runs:
+        for who in ("seen", "unseen"):
+            agg = m.get("results", {}).get(split, {}).get("all", {}).get(who, {})
+            lines.append("| " + " | ".join([f"{m.get('experiment')} / {m.get('variant')}", who]
+                                         + [_fmt(agg.get(k)) for k, _ in keys]) + " |")
+    return "\n".join(lines)
+
+
+def gt_diagnostics_table(runs: list[dict[str, Any]]) -> str:
+    seen: set[str] = set()
+    lines = ["| Step set | Set | Executions | Compliant | Non-compliant | Not-done steps | Order violations | Execs with violation |",
+             "|---|---|---:|---:|---:|---:|---:|---:|"]
+    for m in runs:
+        ss = m.get("step_set", "")
+        if ss in seen:
+            continue
+        seen.add(ss)
+        for which in ("originals", "truncations"):
+            d = m.get("gt_diagnostics", {}).get(which, {})
+            if not d:
+                continue
+            lines.append(f"| {ss} | {which} | {d.get('executions')} | {d.get('compliant')} | {d.get('non_compliant')} | "
+                         f"{d.get('not_done_instances')} | {d.get('order_violation_instances')} | "
+                         f"{d.get('executions_with_order_violation')} |")
+    return "\n".join(lines)
+
+
+def per_step_table(run_dir: str | Path) -> str:
+    p = Path(run_dir) / "per_step.csv"
+    if not p.exists():
+        return "(no per_step.csv)"
+    return df_to_markdown(pd.read_csv(p))
+
+
+def df_to_markdown(df: pd.DataFrame, digits: int = 2) -> str:
+    """Markdown table without the optional `tabulate` dependency."""
+    def cell(v: Any) -> str:
+        if isinstance(v, float):
+            return "–" if math.isnan(v) else f"{v:.{digits}f}"
+        return str(v)
+
+    lines = ["| " + " | ".join(map(str, df.columns)) + " |", "|" + "---|" * len(df.columns)]
+    lines += ["| " + " | ".join(cell(v) for v in row) + " |" for row in df.itertuples(index=False)]
+    return "\n".join(lines)
+
+
+def render_tables(runs_root: str | Path, experiments: list[str] | None = None) -> str:
+    runs = load_runs(runs_root, experiments)
+    if not runs:
+        return "_No runs found._"
+    parts = ["_Generated by `sopverify tables`. Test split, mean ± std over demo seeds. ND = not-done detection "
+             "(positive class); strict counts UNCERTAIN as wrong. FA = non-DONE verdicts per GT-compliant video._", ""]
+    by_exp: dict[str, list[dict]] = {}
+    for m in runs:
+        by_exp.setdefault(m.get("experiment") or "runs", []).append(m)
+    for exp, ms in sorted(by_exp.items()):
+        parts += [f"### {exp}", "", "**Test, originals + truncations**", "", headline_table(ms, "test", "all"), "",
+                  "**Test, originals only**", "", headline_table(ms, "test", "original"), "",
+                  "**Test, truncations only**", "", headline_table(ms, "test", "truncation"), "",
+                  "**Dev (tuning split), all**", "", headline_table(ms, "dev", "all"), "",
+                  "**Seen vs unseen participants (test)**", "", seen_unseen_table(ms), ""]
+        for m in ms:
+            o = m.get("results", {}).get("test", {}).get("all", {}).get("all", {}).get("order_support", {})
+            if o and o.get("mean", 99) < 10:
+                parts.append(f"> {m.get('variant')}: order support is {o.get('mean'):.0f} (< 10). "
+                             "Order precision and recall are not reliable.")
+        parts.append("")
+    parts += ["### Ground-truth diagnostics (seed 0)", "", gt_diagnostics_table(runs), ""]
+    return "\n".join(parts)
+
+
+def inject(md_path: str | Path, tables_md: str) -> None:
+    p = Path(md_path)
+    text = p.read_text() if p.exists() else f"{BEGIN}\n{END}\n"
+    if BEGIN not in text:
+        text += f"\n{BEGIN}\n{END}\n"
+    text = re.sub(re.escape(BEGIN) + r".*?" + re.escape(END), f"{BEGIN}\n{tables_md}\n{END}", text, flags=re.DOTALL)
+    p.write_text(text)

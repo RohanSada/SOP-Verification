@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SOP Verdict {{ r.execution_id }}</title>
+<style>
+:root { --bg:#f7f7f5; --card:#ffffff; --fg:#1d1d1f; --muted:#6b6b70; --line:#e3e3e0; --accent:#2f5bd3; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg:#151517; --card:#1f1f22; --fg:#ececee; --muted:#a0a0a6; --line:#33333a; --accent:#7ea0ff; }
+}
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
+main { max-width:1180px; margin:0 auto; padding:24px 16px 64px; }
+h1 { font-size:22px; margin:0 0 4px; } h2 { font-size:16px; margin:0 0 12px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin:16px 0; }
+.muted { color:var(--muted); } .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px; }
+.header { display:flex; flex-wrap:wrap; gap:16px; align-items:center; justify-content:space-between; }
+.badge { display:inline-block; padding:6px 14px; border-radius:999px; font-weight:700; color:#fff; letter-spacing:.02em; }
+.v-COMPLIANT { background:#2e7d32; } .v-NON_COMPLIANT { background:#c62828; } .v-NEEDS_REVIEW { background:#b26a00; }
+.pill { display:inline-block; padding:2px 9px; border-radius:999px; color:#fff; font-size:12px; font-weight:600; }
+.stats { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+.stat { border:1px solid var(--line); border-radius:10px; padding:6px 12px; min-width:92px; }
+.stat b { font-size:18px; display:block; }
+table { width:100%; border-collapse:collapse; } th, td { text-align:left; padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+th { font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); font-weight:600; }
+.scroll { overflow-x:auto; }
+.gallery { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; }
+.gallery figure { margin:0; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--bg); }
+.gallery img { width:100%; display:block; } .gallery figcaption { padding:8px 10px; font-size:12px; }
+.warn { border-left:4px solid #b26a00; padding:8px 12px; background:rgba(178,106,0,.08); border-radius:6px; margin:6px 0; }
+.evalonly { border-left:4px solid #c62828; padding:8px 12px; background:rgba(198,40,40,.07); border-radius:6px; }
+.graph svg { max-width:100%; height:auto; }
+details summary { cursor:pointer; color:var(--accent); }
+pre { white-space:pre-wrap; overflow-x:auto; }
+</style>
+</head>
+<body><main>
+<div class="card header">
+  <div>
+    <h1>{{ r.execution_id }}</h1>
+    <div class="muted">{{ procedure_name }} · step set <b>{{ r.step_set }}</b> · scorer <span class="mono">{{ r.scorer }}</span>
+      {% if r.duration_s %}· video {{ fmt(r.duration_s) }} s{% endif %}</div>
+    <div class="stats">
+      <div class="stat"><b>{{ r.summary.done }}</b>done</div>
+      <div class="stat"><b>{{ r.summary.not_done }}</b>not done</div>
+      <div class="stat"><b>{{ r.summary.out_of_order }}</b>out of order</div>
+      <div class="stat"><b>{{ r.summary.uncertain }}</b>uncertain</div>
+      <div class="stat"><b>{{ r.summary.not_verifiable }}</b>manual check</div>
+    </div>
+  </div>
+  <span class="badge v-{{ r.video_verdict.value }}">{{ r.video_verdict.value.replace('_', ' ') }}</span>
+</div>
+
+{% for w in r.warnings %}<div class="warn">{{ w }}</div>{% endfor %}
+{% if roi_confirmed is sameas false %}<div class="warn">The workspace crop (ROI) has not been confirmed by a reviewer yet.</div>{% endif %}
+
+<div class="card"><h2>Steps</h2><div class="scroll"><table>
+<tr><th>Step</th><th>Verdict</th><th>Completed at</th><th>Confidence</th><th>Violated prerequisites</th><th>Flags</th><th>Verifier</th>{% if gt %}<th>GT (eval only)</th>{% endif %}</tr>
+{% for s in r.steps %}
+<tr>
+  <td><b>{{ s.step_id }}</b> {{ s.name }}{% if not s.required %} <span class="muted">(optional)</span>{% endif %}</td>
+  <td><span class="pill" style="background: {{ colors[s.verdict.value] }}">{{ s.verdict.value.replace('_', ' ') }}</span></td>
+  <td>{% if s.completion_time_s is not none %}{{ fmt(s.completion_time_s) }} s{% else %}<span class="muted">–</span>{% endif %}</td>
+  <td>{{ fmt(s.confidence, 2) }}</td>
+  <td>{{ s.violated_prerequisites | join(', ') }}</td>
+  <td class="mono">{{ s.flags | join(', ') }}</td>
+  <td>{% if s.verifier.used %}<b>{{ s.verifier.answer }}</b> <span class="muted">{{ s.verifier.rationale }}</span>{% endif %}</td>
+  {% if gt %}<td>{% if gt.done.get(s.step_id) %}done{% if gt.completion_s.get(s.step_id) is not none %} @ {{ fmt(gt.completion_s[s.step_id]) }} s{% endif %}{% else %}not done{% endif %}{% if gt.order_violation.get(s.step_id) %}, out of order{% endif %}</td>{% endif %}
+</tr>
+{% endfor %}
+</table></div>
+{% if r.manual_check %}<p class="muted">Manual check required (not visually verifiable): {{ r.manual_check | join(', ') }}</p>{% endif %}
+</div>
+
+{% if timeline %}<div class="card"><h2>Timeline</h2>
+<p class="muted">Thick lines: smoothed per-step scores. ▼ predicted completion.{% if gt %} ▲ ground-truth completion and red bands (annotated anomalies) are <b>evaluation only</b>.{% endif %}</p>
+{{ timeline | safe }}</div>{% endif %}
+
+{% if gt %}<div class="card evalonly"><b>Evaluation only.</b> Ground truth for this IMPACT execution: video is
+{{ 'compliant' if gt.compliant else 'non-compliant' }}. The inference pipeline never reads these labels.</div>{% endif %}
+
+{% if gallery %}<div class="card"><h2>Evidence keyframes</h2><div class="gallery">
+{% for g in gallery %}<figure><img src="{{ g.src }}" alt="evidence for {{ g.step.step_id }}">
+<figcaption><b>{{ g.step.step_id }}</b> · {{ g.step.verdict.value.replace('_', ' ') }}{% if g.step.evidence_time_s is not none %} · t = {{ fmt(g.step.evidence_time_s) }} s{% endif %}</figcaption></figure>{% endfor %}
+</div></div>{% endif %}
+
+<div class="card graph"><h2>Prerequisite graph</h2>{{ svg | safe }}</div>
+
+<div class="card"><details><summary>Run details</summary>
+<p class="mono">config hash {{ r.config_hash }} · git {{ r.git_commit }} · runtime {{ fmt(r.runtime_s, 2) }} s · created {{ r.created_at or '' }}</p>
+{% if r.meta.demos %}<p>Demos: <span class="mono">{{ r.meta.demos | join(', ') }}</span></p>{% endif %}
+<pre class="mono">{{ config_yaml }}</pre></details></div>
+<p class="muted">Generated by sopverify. IMPACT data is CC BY-NC-SA 4.0: do not redistribute reports containing its frames.</p>
+</main>
+<script>
+(function () {
+  if (!window.matchMedia || !window.Plotly) return;
+  var mq = window.matchMedia('(prefers-color-scheme: dark)');
+  function apply() {
+    var dark = mq.matches, fg = dark ? '#ececee' : '#1d1d1f', grid = dark ? '#33333a' : '#e3e3e0';
+    document.querySelectorAll('.plotly-graph-div').forEach(function (el) {
+      Plotly.relayout(el, {'font.color': fg, 'xaxis.gridcolor': grid, 'yaxis.gridcolor': grid});
+    });
+  }
+  apply();
+  if (mq.addEventListener) mq.addEventListener('change', apply);
+})();
+</script>
+</body></html>

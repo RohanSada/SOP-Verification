@@ -52,6 +52,7 @@ class Item:
     trace: ScoreTrace
     duration_s: float
     gt: ExecutionGT | None = None
+    ref: ExecutionRef | None = None
 
 
 @dataclass
@@ -115,10 +116,12 @@ def collect_items(
     items: list[Item] = []
     requires_by_seed: dict[int, dict[str, list[str]]] = {}
     scorer_info: dict[int, dict] = {}
+    ctx.extras["demos_by_seed"] = {}
     for seed, demo_ids in enumerate(ctx.plan.demo_draws):
         req = active_requires(ctx, cfg, demo_ids)
         requires_by_seed[seed] = req
         demos = build_demo_data([ctx.records[d] for d in demo_ids], steps, features, need_features=needs_feats)
+        ctx.extras["demos_by_seed"][seed] = demos
         kwargs = dict(scorer_kwargs or {})
         if cfg.scorer.name == "oracle":
             kwargs["gt_fn"] = oracle_gt_fn(ctx.records, steps, req)
@@ -142,7 +145,8 @@ def collect_items(
                     trace.save(trace_dir / f"seed{seed}" / f"{eid}.npz")
                 seen = ctx.plan.is_seen(eid, seed)
                 gt_full = compute_gt(rec, steps, req, cfg.checker.final_state_check)
-                items.append(Item(seed, split, eid, "original", "original", seen, None, trace, rec.duration_s, gt_full))
+                items.append(Item(seed, split, eid, "original", "original", seen, None, trace, rec.duration_s,
+                                  gt_full, ref))
                 for tr in make_truncations(gt_full, cfg.eval.truncation):
                     ref_t: ExecutionRef = ref.truncated(tr.cut_s)
                     if getattr(scorer, "duration_dependent", False):
@@ -154,22 +158,31 @@ def collect_items(
                         ttrace = trace.truncate(tr.cut_s)
                     gt_t = compute_gt(rec, steps, req, cfg.checker.final_state_check, t_end=tr.cut_s)
                     items.append(Item(seed, split, eid, tr.variant, "truncation", seen, tr.cut_s, ttrace,
-                                      tr.cut_s, gt_t))
+                                      tr.cut_s, gt_t, ref_t))
     return items, requires_by_seed, scorer_info
 
 
 # ---------------------------------------------------------------------- judging
 def evaluate_items(
     items: list[Item], ctx: Context, cfg: Config, requires_by_seed: dict[int, dict[str, list[str]]],
-    keep_reports: bool = False,
+    keep_reports: bool = False, verifier: Any | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, dict[tuple, Any]]:
     steps = ctx.steps
     srows, vrows = [], []
     reports: dict[tuple, Any] = {}
     for it in items:
         req = requires_by_seed[it.seed]
-        rep, _, _ = judge(it.trace, steps, req, cfg, procedure_id=ctx.procedure.procedure_id,
-                          step_set=ctx.step_set, duration_s=it.duration_s)
+        rep, est, res = judge(it.trace, steps, req, cfg, procedure_id=ctx.procedure.procedure_id,
+                              step_set=ctx.step_set, duration_s=it.duration_s)
+        if verifier is not None and it.ref is not None:
+            ver = verifier.verify(it.ref, steps, est, res, ctx.extras.get("demos_by_seed", {}).get(it.seed, []),
+                                  ctx.procedure)
+            if ver:
+                rep, est, res = judge(it.trace, steps, req, cfg, procedure_id=ctx.procedure.procedure_id,
+                                      step_set=ctx.step_set, duration_s=it.duration_s,
+                                      overrides={k: (v[0], v[1]) for k, v in ver.items()}, estimates=est)
+                for k, v in ver.items():
+                    rep.step(k).verifier = v[2]
         gt = it.gt
         assert gt is not None
         base = {"seed": it.seed, "split": it.split, "execution_id": it.execution_id, "variant": it.variant,
@@ -257,6 +270,7 @@ def run_variant(
     experiment: str = "",
     variant: str = "default",
     progress: Callable[[str], None] | None = None,
+    vlm_backend: Any | None = None,
 ) -> dict[str, Any]:
     t0 = time.time()
     ctx = ctx or build_context(cfg)
@@ -264,10 +278,28 @@ def run_variant(
     out = Path(out_root or cfg.paths_resolved()["runs_root"]) / run_name  # type: ignore[arg-type]
     out.mkdir(parents=True, exist_ok=True)
     trace_dir = out / "traces" if cfg.eval.save_traces else None
+    scorer_kwargs = dict(scorer_kwargs or {})
+    verifier = None
+    if cfg.scorer.name == "vlm" or (cfg.vlm.enabled and cfg.vlm.verifier):
+        from sopverify.vlm.backend import make_backend
+        from sopverify.vlm.frames import VideoFrameSource
+
+        backend = vlm_backend or make_backend(cfg.vlm)
+        frames = VideoFrameSource(ctx.procedure.roi.box, ctx.procedure.roi.frame_size, cfg.vlm.max_long_side)
+        if cfg.scorer.name == "vlm":
+            scorer_kwargs.setdefault("backend", backend)
+            scorer_kwargs.setdefault("frames", frames)
+            scorer_kwargs.setdefault("log_path", out / "vlm_scorer_log.jsonl")
+        if cfg.vlm.enabled and cfg.vlm.verifier:
+            from sopverify.vlm.verifier import VLMVerifier
+
+            verifier = VLMVerifier(cfg, backend, frames, out / "vlm_verifier_log.jsonl")
     items, req, sinfo = collect_items(ctx, cfg, features, scorer_kwargs, trace_dir, progress)
     t_scored = time.time()
     final_cfg, tuning = tune_on_dev(items, ctx, cfg, req)
-    steps_df, videos_df, reports = evaluate_items(items, ctx, final_cfg, req, keep_reports=True)
+    t_v = time.time()
+    steps_df, videos_df, reports = evaluate_items(items, ctx, final_cfg, req, keep_reports=True, verifier=verifier)
+    verifier_s = time.time() - t_v if verifier is not None else 0.0
 
     results = {split: _subsets(steps_df, videos_df, split) for split in final_cfg.eval.splits}
     detailed = {}
@@ -291,7 +323,10 @@ def run_variant(
         "gt_diagnostics": {"originals": diagnostics(gts), "truncations": diagnostics(gts_t)},
         "graph": req.get(0, {}),
         "runtime_s": {"scoring": round(t_scored - t0, 2), "total": round(time.time() - t0, 2),
-                      "per_video_scoring": round((t_scored - t0) / max(1, sum(i.kind == 'original' for i in items)), 3)},
+                      "per_video_scoring": round((t_scored - t0) / max(1, sum(i.kind == 'original' for i in items)), 3),
+                      "verifier": round(verifier_s, 2)},
+        "vlm": {"scorer_stats": {s: v.get("info", {}).get("stats") for s, v in sinfo.items()},
+                "verifier_stats": verifier.stats if verifier is not None else None},
         "scorer_info": sinfo,
     }
     write_yaml(out / "config.yaml", final_cfg.model_dump(mode="json"))
@@ -323,6 +358,7 @@ def run_experiment(
     features_factory: Callable[[Config, Procedure], Any] | None = None,
     scorer_kwargs_factory: Callable[[Config, Context], dict[str, Any]] | None = None,
     progress: Callable[[str], None] | None = None,
+    vlm_backend: Any | None = None,
 ) -> dict[str, dict[str, Any]]:
     exp = load_experiment(path, only)
     out: dict[str, dict[str, Any]] = {}
@@ -336,5 +372,10 @@ def run_experiment(
         ctx = Context(cfg, ctx.procedure, ctx.catalog, ctx.step_set, ctx.records, ctx.plan)
         feats = features_factory(cfg, ctx.procedure) if features_factory else None
         skw = scorer_kwargs_factory(cfg, ctx) if scorer_kwargs_factory else None
-        out[vname] = run_variant(cfg, ctx, out_root, feats, skw, exp.name, vname, progress)
+        needs_vlm = cfg.scorer.name == "vlm" or (cfg.vlm.enabled and cfg.vlm.verifier)
+        if needs_vlm and vlm_backend is None:
+            from sopverify.vlm.backend import make_backend
+
+            vlm_backend = make_backend(cfg.vlm)  # loaded once, shared by all variants
+        out[vname] = run_variant(cfg, ctx, out_root, feats, skw, exp.name, vname, progress, vlm_backend)
     return out

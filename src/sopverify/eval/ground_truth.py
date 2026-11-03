@@ -139,3 +139,14 @@ def diagnostics(gts: Sequence[ExecutionGT]) -> dict:
         "final_misinstalled_executions": sum(g.final_misinstalled for g in gts),
         "per_step": per_step,
     }
+
+
+def gt_overlay(rec: ExecutionRecord, steps: Sequence[Step], requires: Mapping[str, Sequence[str]]):
+    """Ground truth packaged for HTML reports / the app (clearly labelled evaluation-only there)."""
+    from sopverify.report.html_report import GTOverlay
+
+    gt = compute_gt(rec, steps, requires)
+    spans = [(p.start_s, p.end_s, f"anomaly {p.hand}") for p in rec.phases if p.phase == "ANOMALY"]
+    return GTOverlay(completion_s={k: v.completion_s for k, v in gt.steps.items()},
+                     done={k: v.done for k, v in gt.steps.items()}, compliant=gt.compliant,
+                     order_violation={k: v.order_violation for k, v in gt.steps.items()}, anomaly_spans=spans)

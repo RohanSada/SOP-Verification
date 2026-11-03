@@ -156,6 +156,9 @@ class VLMConfig(_Base):
     max_model_len: int = 32768
     gpu_memory_utilization: float = 0.85
     max_steps_per_prompt: int = 20
+    max_images: int = 20
+    # Seconds before the end of the video for the extra final keyframe.
+    final_keyframe_margin_s: float = 0.2
     guided_json: bool = True
     log_prompts: bool = True
 
