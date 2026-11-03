@@ -1,0 +1,12 @@
+# E7: VLM scorer (with/without in-context refs) vs best feature scorer, and best + VLM verifier.
+# Run from notebooks/04_vlm.ipynb (needs the GPU and vLLM). Fewer seeds to fit the 2 h budget.
+extends: _base.yaml
+name: E7_vlm
+question: "VLM as scorer and as verifier"
+features: {extractor: dinov2, crop: roi}
+demos: {n_seeds: 2}
+variants:
+  best_feature: {scorer: {name: linear_probe}}
+  best_feature_verifier: {scorer: {name: linear_probe}, vlm: {enabled: true, verifier: true}}
+  vlm_scorer_refs: {scorer: {name: vlm}, vlm: {enabled: true, in_context_refs: true}}
+  vlm_scorer_norefs: {scorer: {name: vlm}, vlm: {enabled: true, in_context_refs: false}}

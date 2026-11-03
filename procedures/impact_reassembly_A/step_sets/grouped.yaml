@@ -1,0 +1,55 @@
+step_set: grouped
+status: "DRAFT - pending user review (M2 gate). 5 steps, decision D-007."
+description: >
+  One step per major sub-assembly. Members are PSR install events; a step completes when
+  its LAST member event completes. IMPACT annotates all members of a group at (almost) the
+  same instant, so these are the finest steps whose timing the ground truth resolves.
+steps:
+  - id: G1
+    name: "Install rotor assembly in gearbox housing"
+    description: "Insert the drive shaft with bevel gear into the gearbox housing and tighten the M6 nut."
+    end_state: "The drive shaft and bevel gear sit inside the black gearbox housing, secured by the M6 nut. The rotor parts are no longer loose on the table or in their bin."
+    requires: []
+    required: true
+    visually_verifiable: true
+    gt_mapping:
+      psr_events: ["install:gearbox_housing", "install:drive_shaft", "install:bevel_gear", "install:M6_nut"]
+  - id: G2
+    name: "Fasten adapter plate"
+    description: "Place the adapter plate on the gearbox housing and fasten both screws (top-left, lower-right) with their M4 nuts."
+    end_state: "The adapter plate is mounted on the gearbox housing, held by two screws with M4 nuts."
+    requires: [G1]
+    required: true
+    visually_verifiable: true
+    gt_mapping:
+      psr_events: ["install:adapter_plate", "install:screw_adaptor_topleft", "install:screw_adaptor_lowright", "install:M4_nut_plate_topleft", "install:M4_nut_plate_lowright"]
+  - id: G3
+    name: "Insert and fasten bearing plate assembly"
+    description: "Push the bearing plate assembly into the housing and fasten both bearing screws."
+    end_state: "The bearing plate assembly is seated in the housing and fastened with both bearing screws."
+    requires: [G2]
+    required: true
+    visually_verifiable: true
+    gt_mapping:
+      psr_events: ["install:bearing_plate", "install:bearing_screw_topleft", "install:bearing_screw_lowright"]
+  - id: G4
+    name: "Install locking lever assembly"
+    description: "Mount the locking lever with its spring and washer and tighten the lever screw."
+    end_state: "The locking lever is mounted on the housing with its spring, washer and screw."
+    requires: [G3]
+    required: true
+    visually_verifiable: true
+    gt_mapping:
+      psr_events: ["install:screw_lever", "install:spring", "install:lever", "install:washer"]
+  - id: G5
+    name: "Screw on anti-vibration handle"
+    description: "Screw the anti-vibration handle into the side of the gearbox housing."
+    end_state: "The black anti-vibration handle is screwed into the side of the gearbox housing and is no longer in its storage bin."
+    # Physical dependency only (the handle screws into the housing). The pictorial manual
+    # shows the handle last; use requires: [G4] to enforce that (open question for the M2 gate).
+    requires: [G1]
+    required: true
+    visually_verifiable: true
+    notes: "Completes a median of 2.4 s before the video ends (DATA_NOTES 'tail'); hard to verify visually."
+    gt_mapping:
+      psr_events: ["install:anti_vibration_handle"]

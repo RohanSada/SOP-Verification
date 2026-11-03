@@ -1,0 +1,36 @@
+# PLACEHOLDER: replaced by the best configuration after M5 (E2-E6). Currently identical to default.yaml.
+# Every field is documented in src/sopverify/config.py.
+procedure: procedures/impact_reassembly_A
+step_set: grouped
+
+paths:
+  data_root:        ${SOPVERIFY_DATA_ROOT:-/content/drive/MyDrive/sopverify/data/IMPACT-v1.1}
+  annotations_root: ${SOPVERIFY_ANNOTATIONS:-}      # empty -> <data_root>/annotations
+  cache_root:       ${SOPVERIFY_CACHE:-/content/drive/MyDrive/sopverify/cache}
+  runs_root:        ${SOPVERIFY_RUNS:-/content/drive/MyDrive/sopverify/runs}
+  exports_root:     ${SOPVERIFY_EXPORTS:-/content/drive/MyDrive/sopverify/exports}
+  scratch:          ${SOPVERIFY_SCRATCH:-/content/scratch}
+
+data: {dataset: impact, task: Reassembly, model: A, view: front, require: [psr, tas_s, asr]}
+
+# D-003: demos = all parts installed at the end, no rework, <= 5% anomaly time per hand.
+demos: {k: 2, mode: complete_low_anomaly, max_anomaly_frac: 0.05, expertise: prefer_expert,
+        n_seeds: 5, seed: 0, distinct_participants: true, held_out_participant: false}
+splits: {dev_fraction: 0.3, participant_disjoint: true, seed: 0}
+video: {sample_fps: 2.0, expected_resolution: [1280, 720], frame_cache: true, frame_cache_on_scratch: true}
+features: {extractor: dinov2, model_id: facebook/dinov2-base, crop: roi, pooling: cls, image_size: 224,
+           resize_mode: letterbox, batch_size: 128, dtype: float16, l2_normalize: true}
+labels: {pos_margin_s: 3.0, neg_margin_s: 10.0, adaptive_tail: true}
+scorer: {name: linear_probe, knn_k: 15, linear_C_grid: [0.01, 0.1, 1.0, 10.0]}
+smoothing: {median_window_s: 2.5, tau_on: 0.6, tau_off: 0.4, min_on_s: 5.0, min_on_end_s: 1.0, evidence_offset_s: 3.0}
+checker: {tau_low: 0.3, order_tolerance_s: 5.0, final_state_check: false}
+graph: {source: null, min_support: 5}
+vlm: {enabled: false, backend: vllm, model_id: Qwen/Qwen3-VL-8B-Instruct, keyframe_s: 10, in_context_refs: true,
+      verifier: false, max_long_side: 768, max_retries: 2}
+eval:
+  truncation: {enabled: true, n_per_video: 3, m_choices: [1, 2, 3], seed: 0, min_gap_s: 5.0}
+  tune: {enabled: false, grid: {}}
+  splits: [dev, test]
+# Dev-set targets for calling V1 successful (spec 15 Q4, confirmed by the user).
+targets: {not_done_recall: 0.90, max_false_alarms_per_compliant: 1.0, max_review_rate: 0.20}
+report: {html: true, show_gt: true, evidence: true}

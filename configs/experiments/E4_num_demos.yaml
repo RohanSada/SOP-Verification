@@ -1,0 +1,10 @@
+# E4: how many demos? Set features/scorer to the best of E2 x E3 before running.
+extends: _base.yaml
+name: E4_num_demos
+question: "K = 1, 2, 3 demonstrations"
+features: {extractor: dinov2, crop: roi}
+scorer: {name: linear_probe}
+variants:
+  k1: {demos: {k: 1}}
+  k2: {demos: {k: 2}}
+  k3: {demos: {k: 3}}

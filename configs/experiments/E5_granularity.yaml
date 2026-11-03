@@ -1,0 +1,10 @@
+# E5: step granularity.
+extends: _base.yaml
+name: E5_granularity
+question: "grouped (5) vs tas_s (13, 5 verifiable) vs psr (17)"
+features: {extractor: dinov2, crop: roi}
+scorer: {name: linear_probe}
+variants:
+  grouped: {step_set: grouped}
+  tas_s: {step_set: tas_s}
+  psr: {step_set: psr}

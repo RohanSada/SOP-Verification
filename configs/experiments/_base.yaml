@@ -1,0 +1,10 @@
+# Shared base for experiments: default config + threshold tuning on DEV traces only.
+extends: ../default.yaml
+eval:
+  tune:
+    enabled: true
+    grid:
+      smoothing.tau_on: [0.5, 0.6, 0.7, 0.8]
+      smoothing.tau_off: [0.3, 0.4, 0.5]
+      smoothing.min_on_s: [2.0, 5.0, 10.0]
+      checker.tau_low: [0.2, 0.3, 0.4]

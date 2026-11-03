@@ -1,0 +1,9 @@
+# E2: which features? Fixed scorer: linear_probe.
+extends: _base.yaml
+name: E2_features
+question: "VideoMAEv2 (shipped, full frame) vs DINOv2 full frame vs DINOv2 ROI"
+scorer: {name: linear_probe}
+variants:
+  videomae_full: {features: {extractor: shipped_videomaev2}}
+  dinov2_full: {features: {extractor: dinov2, crop: full}}
+  dinov2_roi: {features: {extractor: dinov2, crop: roi}}

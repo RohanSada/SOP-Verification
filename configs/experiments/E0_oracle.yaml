@@ -1,0 +1,22 @@
+# E0: are the checker and metrics correct? Oracle traces (built from GT) must give perfect
+# step and video metrics on originals and truncations. Smoothing is disabled and the grid runs
+# at the annotation frame rate so traces are exact; the last variant shows what default
+# smoothing alone costs (not expected to be perfect, see D-006).
+extends: ../default.yaml
+name: E0_oracle
+question: "Are the checker and metrics correct?"
+scorer: {name: oracle}
+video: {sample_fps: 30.0}
+smoothing: {median_window_s: 0.0, min_on_s: 0.0, min_on_end_s: 0.0}
+checker: {order_tolerance_s: 0.0}
+demos: {n_seeds: 1}
+eval: {save_traces: false}
+variants:
+  grouped: {step_set: grouped}
+  tas_s: {step_set: tas_s}
+  psr: {step_set: psr}
+  grouped_default_smoothing:
+    step_set: grouped
+    video: {sample_fps: 2.0}
+    smoothing: {median_window_s: 2.5, min_on_s: 5.0, min_on_end_s: 1.0}
+    checker: {order_tolerance_s: 5.0}

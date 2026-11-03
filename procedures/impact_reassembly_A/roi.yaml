@@ -1,0 +1,9 @@
+# Static workspace crop, front-view pixels [x, y, w, h] on a 1280x720 frame.
+# DRAFT: placed on a half-resolution front-view frame from the IMPACT project page
+# (website/assets/videos/annotation_demo.mp4). Confirm on a real frame with
+# notebooks/02_extract_features.ipynb (ROI preview cell) or the app's Procedure tab.
+box: [440, 300, 480, 360]
+frame_size: [1280, 720]
+confirmed: false
+notes: "Covers the grey work area, the hands and the device, and the tops of the part bins. Pending user confirmation (M2 gate)."
+step_overrides: {}

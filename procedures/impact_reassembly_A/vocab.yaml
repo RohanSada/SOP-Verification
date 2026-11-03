@@ -1,0 +1,252 @@
+components:
+- anti_vibration_handle
+- gearbox_housing
+- drive_shaft
+- bevel_gear
+- adapter_plate
+- bearing_plate
+- screw_lever
+- screw_adaptor_topleft
+- screw_adaptor_lowright
+- bearing_screw_topleft
+- bearing_screw_lowright
+- M4_nut_plate_topleft
+- M4_nut_plate_lowright
+- spring
+- lever
+- washer
+- M6_nut
+psr_events:
+- component: anti_vibration_handle
+  id: install:anti_vibration_handle
+  impact_id: 0
+  kind: install
+- component: anti_vibration_handle
+  id: incorrect:anti_vibration_handle
+  impact_id: 1
+  kind: incorrect
+- component: anti_vibration_handle
+  id: remove:anti_vibration_handle
+  impact_id: 2
+  kind: remove
+- component: gearbox_housing
+  id: install:gearbox_housing
+  impact_id: 3
+  kind: install
+- component: gearbox_housing
+  id: incorrect:gearbox_housing
+  impact_id: 4
+  kind: incorrect
+- component: gearbox_housing
+  id: remove:gearbox_housing
+  impact_id: 5
+  kind: remove
+- component: drive_shaft
+  id: install:drive_shaft
+  impact_id: 6
+  kind: install
+- component: drive_shaft
+  id: incorrect:drive_shaft
+  impact_id: 7
+  kind: incorrect
+- component: drive_shaft
+  id: remove:drive_shaft
+  impact_id: 8
+  kind: remove
+- component: bevel_gear
+  id: install:bevel_gear
+  impact_id: 9
+  kind: install
+- component: bevel_gear
+  id: incorrect:bevel_gear
+  impact_id: 10
+  kind: incorrect
+- component: bevel_gear
+  id: remove:bevel_gear
+  impact_id: 11
+  kind: remove
+- component: adapter_plate
+  id: install:adapter_plate
+  impact_id: 12
+  kind: install
+- component: adapter_plate
+  id: incorrect:adapter_plate
+  impact_id: 13
+  kind: incorrect
+- component: adapter_plate
+  id: remove:adapter_plate
+  impact_id: 14
+  kind: remove
+- component: bearing_plate
+  id: install:bearing_plate
+  impact_id: 15
+  kind: install
+- component: bearing_plate
+  id: incorrect:bearing_plate
+  impact_id: 16
+  kind: incorrect
+- component: bearing_plate
+  id: remove:bearing_plate
+  impact_id: 17
+  kind: remove
+- component: screw_lever
+  id: install:screw_lever
+  impact_id: 18
+  kind: install
+- component: screw_lever
+  id: incorrect:screw_lever
+  impact_id: 19
+  kind: incorrect
+- component: screw_lever
+  id: remove:screw_lever
+  impact_id: 20
+  kind: remove
+- component: screw_adaptor_topleft
+  id: install:screw_adaptor_topleft
+  impact_id: 21
+  kind: install
+- component: screw_adaptor_topleft
+  id: incorrect:screw_adaptor_topleft
+  impact_id: 22
+  kind: incorrect
+- component: screw_adaptor_topleft
+  id: remove:screw_adaptor_topleft
+  impact_id: 23
+  kind: remove
+- component: screw_adaptor_lowright
+  id: install:screw_adaptor_lowright
+  impact_id: 24
+  kind: install
+- component: screw_adaptor_lowright
+  id: incorrect:screw_adaptor_lowright
+  impact_id: 25
+  kind: incorrect
+- component: screw_adaptor_lowright
+  id: remove:screw_adaptor_lowright
+  impact_id: 26
+  kind: remove
+- component: bearing_screw_topleft
+  id: install:bearing_screw_topleft
+  impact_id: 27
+  kind: install
+- component: bearing_screw_topleft
+  id: incorrect:bearing_screw_topleft
+  impact_id: 28
+  kind: incorrect
+- component: bearing_screw_topleft
+  id: remove:bearing_screw_topleft
+  impact_id: 29
+  kind: remove
+- component: bearing_screw_lowright
+  id: install:bearing_screw_lowright
+  impact_id: 30
+  kind: install
+- component: bearing_screw_lowright
+  id: incorrect:bearing_screw_lowright
+  impact_id: 31
+  kind: incorrect
+- component: bearing_screw_lowright
+  id: remove:bearing_screw_lowright
+  impact_id: 32
+  kind: remove
+- component: M4_nut_plate_topleft
+  id: install:M4_nut_plate_topleft
+  impact_id: 33
+  kind: install
+- component: M4_nut_plate_topleft
+  id: incorrect:M4_nut_plate_topleft
+  impact_id: 34
+  kind: incorrect
+- component: M4_nut_plate_topleft
+  id: remove:M4_nut_plate_topleft
+  impact_id: 35
+  kind: remove
+- component: M4_nut_plate_lowright
+  id: install:M4_nut_plate_lowright
+  impact_id: 36
+  kind: install
+- component: M4_nut_plate_lowright
+  id: incorrect:M4_nut_plate_lowright
+  impact_id: 37
+  kind: incorrect
+- component: M4_nut_plate_lowright
+  id: remove:M4_nut_plate_lowright
+  impact_id: 38
+  kind: remove
+- component: spring
+  id: install:spring
+  impact_id: 39
+  kind: install
+- component: spring
+  id: incorrect:spring
+  impact_id: 40
+  kind: incorrect
+- component: spring
+  id: remove:spring
+  impact_id: 41
+  kind: remove
+- component: lever
+  id: install:lever
+  impact_id: 42
+  kind: install
+- component: lever
+  id: incorrect:lever
+  impact_id: 43
+  kind: incorrect
+- component: lever
+  id: remove:lever
+  impact_id: 44
+  kind: remove
+- component: washer
+  id: install:washer
+  impact_id: 45
+  kind: install
+- component: washer
+  id: incorrect:washer
+  impact_id: 46
+  kind: incorrect
+- component: washer
+  id: remove:washer
+  impact_id: 47
+  kind: remove
+- component: M6_nut
+  id: install:M6_nut
+  impact_id: 48
+  kind: install
+- component: M6_nut
+  id: incorrect:M6_nut
+  impact_id: 49
+  kind: incorrect
+- component: M6_nut
+  id: remove:M6_nut
+  impact_id: 50
+  kind: remove
+source: 'IMPACT v1.1: PSR/labels/procedure_info_IMPACT.json, component_names.json,
+  TAS/mapping_TAS-S.txt'
+tas_s_labels:
+- 'NULL'
+- START_ANGLE_GRINDER_ASSEMBLY
+- UNSCREW_ANTI_VIBRATION_HANDLE
+- STORE_ANTI_VIBRATION_HANDLE
+- REMOVE_LOCKING_LEVER_ASSEMBLY
+- STORE_LOCKING_LEVER_ASSEMBLY
+- EXTRACT_BEARING_PLATE_ASSEMBLY
+- STORE_BEARING_PLATE_ASSEMBLY
+- DETACH_ADAPTER_PLATE
+- REMOVE_ROTOR_ASSEMBLY
+- STORE_ROTOR_ASSEMBLY
+- STORE_GEARBOX_HOUSING
+- STORE_ADAPTER_PLATE
+- RETRIEVE_GEARBOX_HOUSING
+- RETRIEVE_ROTOR_ASSEMBLY
+- INSTALL_ROTOR_ASSEMBLY
+- ATTACH_ADAPTER_PLATE
+- RETRIEVE_ADAPTER_PLATE
+- RETRIEVE_ANTI_VIBRATION_HANDLE
+- RETRIEVE_BEARING_PLATE_ASSEMBLY
+- INSERT_BEARING_PLATE_ASSEMBLY
+- RETRIEVE_LOCKING_LEVER_ASSEMBLY
+- INSTALL_LOCKING_LEVER_ASSEMBLY
+- SCREW_ON_ANTI_VIBRATION_HANDLE
+- STORE_TOOL
+- FINISH_ANGLE_GRINDER_ASSEMBLY

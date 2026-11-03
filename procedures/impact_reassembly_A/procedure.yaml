@@ -1,0 +1,17 @@
+procedure_id: impact_reassembly_A
+name: "Angle grinder reassembly (Fein CG15-125BL, IMPACT Model A)"
+sop_text: sop.md
+sop_status: "DRAFT - written from IMPACT step names and the pictorial manual on the IMPACT project page; pending user review (M2 gate)"
+default_step_set: grouped
+step_sets:
+  grouped: step_sets/grouped.yaml
+  tas_s:   step_sets/tas_s.yaml
+  psr:     step_sets/psr.yaml
+# IMPACT's released graph (tasks/PSR/gemini_3_1_pro/configs/procedure_graph.json) is mined
+# from data and has no install->install edges, so it cannot express this SOP (DECISIONS D-004).
+graph_source: manual
+released_graph: null
+roi: roi.yaml
+camera: front
+vocabulary: vocab.yaml
+dataset: impact-v1.1

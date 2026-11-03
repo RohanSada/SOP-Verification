@@ -1,0 +1,140 @@
+# Generated draft; edit freely.
+step_set: tas_s
+status: DRAFT - pending user review (M2 gate)
+description: The 13 TAS-S labels that occur in Model A reassembly. Completion = end of the LAST segment with the label. Action-only
+  labels (retrieve/store/finish) are not visually verifiable and not required (D-009).
+steps:
+- id: T01
+  name: Retrieve rotor assembly
+  description: TAS-S step RETRIEVE_ROTOR_ASSEMBLY.
+  requires: []
+  required: false
+  visually_verifiable: false
+  notes: action without a lasting end-state; manual check only
+  gt_mapping:
+    tas_s_labels:
+    - RETRIEVE_ROTOR_ASSEMBLY
+- id: T02
+  name: Retrieve gearbox housing
+  description: TAS-S step RETRIEVE_GEARBOX_HOUSING.
+  requires: []
+  required: false
+  visually_verifiable: false
+  notes: action without a lasting end-state; manual check only
+  gt_mapping:
+    tas_s_labels:
+    - RETRIEVE_GEARBOX_HOUSING
+- id: T03
+  name: Install rotor assembly
+  description: TAS-S step INSTALL_ROTOR_ASSEMBLY.
+  end_state: The rotor assembly (drive shaft, bevel gear) is installed in the gearbox housing.
+  requires: []
+  required: true
+  visually_verifiable: true
+  gt_mapping:
+    tas_s_labels:
+    - INSTALL_ROTOR_ASSEMBLY
+- id: T04
+  name: Store tool
+  description: TAS-S step STORE_TOOL.
+  requires: []
+  required: false
+  visually_verifiable: false
+  notes: action without a lasting end-state; manual check only
+  gt_mapping:
+    tas_s_labels:
+    - STORE_TOOL
+- id: T05
+  name: Retrieve adapter plate
+  description: TAS-S step RETRIEVE_ADAPTER_PLATE.
+  requires: []
+  required: false
+  visually_verifiable: false
+  notes: action without a lasting end-state; manual check only
+  gt_mapping:
+    tas_s_labels:
+    - RETRIEVE_ADAPTER_PLATE
+- id: T06
+  name: Attach adapter plate
+  description: TAS-S step ATTACH_ADAPTER_PLATE.
+  end_state: The adapter plate is attached to the gearbox housing.
+  requires:
+  - T03
+  required: true
+  visually_verifiable: true
+  gt_mapping:
+    tas_s_labels:
+    - ATTACH_ADAPTER_PLATE
+- id: T07
+  name: Retrieve bearing plate assembly
+  description: TAS-S step RETRIEVE_BEARING_PLATE_ASSEMBLY.
+  requires: []
+  required: false
+  visually_verifiable: false
+  notes: action without a lasting end-state; manual check only
+  gt_mapping:
+    tas_s_labels:
+    - RETRIEVE_BEARING_PLATE_ASSEMBLY
+- id: T08
+  name: Insert bearing plate assembly
+  description: TAS-S step INSERT_BEARING_PLATE_ASSEMBLY.
+  end_state: The bearing plate assembly is inserted in the housing.
+  requires:
+  - T06
+  required: true
+  visually_verifiable: true
+  gt_mapping:
+    tas_s_labels:
+    - INSERT_BEARING_PLATE_ASSEMBLY
+- id: T09
+  name: Retrieve locking lever assembly
+  description: TAS-S step RETRIEVE_LOCKING_LEVER_ASSEMBLY.
+  requires: []
+  required: false
+  visually_verifiable: false
+  notes: action without a lasting end-state; manual check only
+  gt_mapping:
+    tas_s_labels:
+    - RETRIEVE_LOCKING_LEVER_ASSEMBLY
+- id: T10
+  name: Install locking lever assembly
+  description: TAS-S step INSTALL_LOCKING_LEVER_ASSEMBLY.
+  end_state: The locking lever assembly is installed on the housing.
+  requires:
+  - T08
+  required: true
+  visually_verifiable: true
+  gt_mapping:
+    tas_s_labels:
+    - INSTALL_LOCKING_LEVER_ASSEMBLY
+- id: T11
+  name: Retrieve anti vibration handle
+  description: TAS-S step RETRIEVE_ANTI_VIBRATION_HANDLE.
+  requires: []
+  required: false
+  visually_verifiable: false
+  notes: action without a lasting end-state; manual check only
+  gt_mapping:
+    tas_s_labels:
+    - RETRIEVE_ANTI_VIBRATION_HANDLE
+- id: T12
+  name: Screw on anti vibration handle
+  description: TAS-S step SCREW_ON_ANTI_VIBRATION_HANDLE.
+  end_state: The anti-vibration handle is screwed onto the gearbox housing.
+  requires:
+  - T03
+  required: true
+  visually_verifiable: true
+  gt_mapping:
+    tas_s_labels:
+    - SCREW_ON_ANTI_VIBRATION_HANDLE
+- id: T13
+  name: Finish angle grinder assembly
+  description: TAS-S step FINISH_ANGLE_GRINDER_ASSEMBLY.
+  requires: []
+  required: false
+  visually_verifiable: false
+  notes: action without a lasting end-state; manual check only
+  gt_mapping:
+    tas_s_labels:
+    - FINISH_ANGLE_GRINDER_ASSEMBLY

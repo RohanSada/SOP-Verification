@@ -1,0 +1,12 @@
+# E6: graph source and its effect on OUT_OF_ORDER false alarms. IMPACT's released graph is not
+# usable for this SOP (D-004), so 'manual' is the reference. inferred_demos uses min_support = K
+# (with K=2 demos the default of 5 would yield no edges at all).
+extends: _base.yaml
+name: E6_graph
+question: "manual vs inferred_all (oracle procedure knowledge) vs inferred_demos"
+features: {extractor: dinov2, crop: roi}
+scorer: {name: linear_probe}
+variants:
+  manual: {graph: {source: manual}}
+  inferred_all: {graph: {source: inferred_all, min_support: 5}}
+  inferred_demos: {graph: {source: inferred_demos, min_support: 2}}

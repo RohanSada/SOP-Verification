@@ -1,0 +1,9 @@
+# E3: which scorer? Set `features` to the E2 winner before running (default: DINOv2 ROI).
+extends: _base.yaml
+name: E3_scorers
+question: "prototype vs linear_probe vs knn on the best E2 features"
+features: {extractor: dinov2, crop: roi}
+variants:
+  prototype: {scorer: {name: prototype}}
+  linear_probe: {scorer: {name: linear_probe}}
+  knn: {scorer: {name: knn, knn_k: 15}}

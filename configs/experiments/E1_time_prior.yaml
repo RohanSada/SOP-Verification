@@ -1,0 +1,8 @@
+# E1: sanity baseline. A visual scorer must beat this "progress clock".
+extends: _base.yaml
+name: E1_time_prior
+question: "How far does a progress clock get?"
+scorer: {name: time_prior}
+eval: {save_traces: false}
+variants:
+  grouped: {step_set: grouped}

@@ -1,0 +1,216 @@
+# Generated draft; edit freely.
+step_set: psr
+status: DRAFT - pending user review (M2 gate)
+description: One step per PSR 'Install <component>' event (17). 'Incorrectly installed' and 'Remove' events are not SOP steps
+  (D-005). Prerequisites mirror the grouped graph at component level; adapter_plate and bearing_plate complete with their
+  last screw.
+steps:
+- id: P01
+  name: Install gearbox housing
+  description: PSR event 'Install gearbox_housing'.
+  end_state: The gearbox housing is installed on the angle grinder.
+  requires: []
+  required: true
+  visually_verifiable: true
+  gt_mapping:
+    psr_events:
+    - install:gearbox_housing
+- id: P02
+  name: Install drive shaft
+  description: PSR event 'Install drive_shaft'.
+  end_state: The drive shaft is installed on the angle grinder.
+  requires: []
+  required: true
+  visually_verifiable: true
+  gt_mapping:
+    psr_events:
+    - install:drive_shaft
+- id: P03
+  name: Install bevel gear
+  description: PSR event 'Install bevel_gear'.
+  end_state: The bevel gear is installed on the angle grinder.
+  requires: []
+  required: true
+  visually_verifiable: true
+  gt_mapping:
+    psr_events:
+    - install:bevel_gear
+- id: P04
+  name: Install M6 nut
+  description: PSR event 'Install M6_nut'.
+  end_state: The M6 nut is installed on the angle grinder.
+  requires: []
+  required: true
+  visually_verifiable: true
+  notes: small part; may be hard to see from the front view
+  gt_mapping:
+    psr_events:
+    - install:M6_nut
+- id: P05
+  name: Install adapter screw (top-left)
+  description: PSR event 'Install screw_adaptor_topleft'.
+  end_state: The adapter screw (top-left) is installed on the angle grinder.
+  requires:
+  - P01
+  - P02
+  - P03
+  - P04
+  required: true
+  visually_verifiable: true
+  notes: small part; may be hard to see from the front view
+  gt_mapping:
+    psr_events:
+    - install:screw_adaptor_topleft
+- id: P06
+  name: Install adapter screw (lower-right)
+  description: PSR event 'Install screw_adaptor_lowright'.
+  end_state: The adapter screw (lower-right) is installed on the angle grinder.
+  requires:
+  - P01
+  - P02
+  - P03
+  - P04
+  required: true
+  visually_verifiable: true
+  notes: small part; may be hard to see from the front view
+  gt_mapping:
+    psr_events:
+    - install:screw_adaptor_lowright
+- id: P07
+  name: Install M4 nut (top-left)
+  description: PSR event 'Install M4_nut_plate_topleft'.
+  end_state: The M4 nut (top-left) is installed on the angle grinder.
+  requires:
+  - P01
+  - P02
+  - P03
+  - P04
+  required: true
+  visually_verifiable: true
+  notes: small part; may be hard to see from the front view
+  gt_mapping:
+    psr_events:
+    - install:M4_nut_plate_topleft
+- id: P08
+  name: Install M4 nut (lower-right)
+  description: PSR event 'Install M4_nut_plate_lowright'.
+  end_state: The M4 nut (lower-right) is installed on the angle grinder.
+  requires:
+  - P01
+  - P02
+  - P03
+  - P04
+  required: true
+  visually_verifiable: true
+  notes: small part; may be hard to see from the front view
+  gt_mapping:
+    psr_events:
+    - install:M4_nut_plate_lowright
+- id: P09
+  name: Install adapter plate
+  description: PSR event 'Install adapter_plate'.
+  end_state: The adapter plate is installed on the angle grinder.
+  requires:
+  - P05
+  - P06
+  - P07
+  - P08
+  required: true
+  visually_verifiable: true
+  gt_mapping:
+    psr_events:
+    - install:adapter_plate
+- id: P10
+  name: Install bearing screw (top-left)
+  description: PSR event 'Install bearing_screw_topleft'.
+  end_state: The bearing screw (top-left) is installed on the angle grinder.
+  requires:
+  - P09
+  required: true
+  visually_verifiable: true
+  notes: small part; may be hard to see from the front view
+  gt_mapping:
+    psr_events:
+    - install:bearing_screw_topleft
+- id: P11
+  name: Install bearing screw (lower-right)
+  description: PSR event 'Install bearing_screw_lowright'.
+  end_state: The bearing screw (lower-right) is installed on the angle grinder.
+  requires:
+  - P09
+  required: true
+  visually_verifiable: true
+  notes: small part; may be hard to see from the front view
+  gt_mapping:
+    psr_events:
+    - install:bearing_screw_lowright
+- id: P12
+  name: Install bearing plate
+  description: PSR event 'Install bearing_plate'.
+  end_state: The bearing plate is installed on the angle grinder.
+  requires:
+  - P10
+  - P11
+  required: true
+  visually_verifiable: true
+  gt_mapping:
+    psr_events:
+    - install:bearing_plate
+- id: P13
+  name: Install lever screw
+  description: PSR event 'Install screw_lever'.
+  end_state: The lever screw is installed on the angle grinder.
+  requires:
+  - P12
+  required: true
+  visually_verifiable: true
+  notes: small part; may be hard to see from the front view
+  gt_mapping:
+    psr_events:
+    - install:screw_lever
+- id: P14
+  name: Install lever spring
+  description: PSR event 'Install spring'.
+  end_state: The lever spring is installed on the angle grinder.
+  requires:
+  - P12
+  required: true
+  visually_verifiable: true
+  notes: small part; may be hard to see from the front view
+  gt_mapping:
+    psr_events:
+    - install:spring
+- id: P15
+  name: Install locking lever
+  description: PSR event 'Install lever'.
+  end_state: The locking lever is installed on the angle grinder.
+  requires:
+  - P12
+  required: true
+  visually_verifiable: true
+  gt_mapping:
+    psr_events:
+    - install:lever
+- id: P16
+  name: Install lever washer
+  description: PSR event 'Install washer'.
+  end_state: The lever washer is installed on the angle grinder.
+  requires:
+  - P12
+  required: true
+  visually_verifiable: true
+  notes: small part; may be hard to see from the front view
+  gt_mapping:
+    psr_events:
+    - install:washer
+- id: P17
+  name: Install anti-vibration handle
+  description: PSR event 'Install anti_vibration_handle'.
+  end_state: The anti-vibration handle is installed on the angle grinder.
+  requires:
+  - P01
+  required: true
+  visually_verifiable: true
+  gt_mapping:
+    psr_events:
+    - install:anti_vibration_handle
