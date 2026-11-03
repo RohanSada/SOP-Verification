@@ -1,6 +1,7 @@
-from helpers import make_record
 from sopverify.config import DemosConfig, SplitsConfig
 from sopverify.data.impact.splits import demo_candidates, is_complete, make_split_plan
+
+from helpers import make_record
 
 
 def _pool():

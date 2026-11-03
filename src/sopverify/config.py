@@ -334,10 +334,17 @@ class Experiment(BaseModel):
     variants: dict[str, Config]
 
 
-def load_experiment(path: str | Path, only: list[str] | None = None) -> Experiment:
-    """An experiment file = base config + named variants (each a dict of overrides)."""
+def load_experiment(path: str | Path, only: list[str] | None = None,
+                    overrides: dict[str, Any] | None = None) -> Experiment:
+    """An experiment file = base config + named variants (each a dict of overrides).
+
+    `overrides` (dotted keys) apply to the base, before the variants, e.g. to point E3 at the
+    feature extractor that won E2 without editing the file.
+    """
     path = Path(path)
     data = _load_layered(path)
+    if overrides:
+        data = deep_merge(data, expand_dotted(overrides))
     name = data.pop("name", path.stem)
     question = data.pop("question", "")
     variants_raw = data.pop("variants", None) or {"default": {}}
@@ -396,3 +403,16 @@ def stage_hash(cfg: Config, stage: str, **extra: Any) -> str:
     payload["_stage"] = stage
     payload["_extra"] = extra
     return stable_hash(payload)
+
+
+def parse_set_args(items: list[str] | None) -> dict[str, Any]:
+    """['a.b=1', 'c=foo'] -> {'a.b': 1, 'c': 'foo'} (values parsed as YAML scalars)."""
+    import yaml
+
+    out: dict[str, Any] = {}
+    for it in items or []:
+        if "=" not in it:
+            raise ValueError(f"expected key=value, got {it!r}")
+        k, v = it.split("=", 1)
+        out[k.strip()] = yaml.safe_load(v)
+    return out

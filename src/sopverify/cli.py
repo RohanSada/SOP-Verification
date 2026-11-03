@@ -94,7 +94,8 @@ def data_download(
     p = cfg.paths_resolved()
     data_root = Path(p["data_root"])  # type: ignore[arg-type]
     if what in ("annotations", "sample"):
-        target = dest or (data_root.parent / "downloads")
+        # The 8 MiB annotations zip may live on Drive; the 2.8 GB sample stays on local scratch.
+        target = dest or (data_root.parent / "downloads" if what == "annotations" else Path(p["scratch"]) / "downloads")  # type: ignore[arg-type]
         z = D.download_bundle(what, target)
         out_root = data_root if what == "annotations" else Path(p["scratch"]) / "impact_sample"  # type: ignore[arg-type]
         D.extract_zip(z, out_root)
@@ -299,11 +300,13 @@ def run_cmd(execution: str = typer.Option(None, help="IMPACT execution id."),
 @app.command("eval")
 def eval_cmd(config: Path = typer.Option(..., "--config", "-c", help="Experiment file (configs/experiments/*.yaml)."),
              only: str = typer.Option(None, help="Comma-separated variant names."),
-             out_root: Path = typer.Option(None, help="Runs folder (default: paths.runs_root).")):
+             out_root: Path = typer.Option(None, help="Runs folder (default: paths.runs_root)."),
+             set_: list[str] = typer.Option(None, "--set", help="Base override key=value, e.g. features.crop=full.")):
     """Run an experiment: all variants x demo seeds x dev/test (+ truncations); writes runs/<run>/."""
+    from sopverify.config import parse_set_args
     from sopverify.eval.runner import run_experiment
 
-    res = run_experiment(config, only.split(",") if only else None, out_root)
+    res = run_experiment(config, only.split(",") if only else None, out_root, overrides=parse_set_args(set_))
     for m in res.values():
         agg = m["results"].get("test", {}).get("all", {}).get("all", {})
         show = {k: round(agg[k]["mean"], 3) for k in ("nd_recall", "nd_precision", "fa_per_compliant", "review_rate",

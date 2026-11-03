@@ -4,7 +4,6 @@ import json
 
 import pytest
 
-from helpers import make_record, planted_features, write_toy_procedure
 from sopverify.compliance.verdicts import StepVerdict as V
 from sopverify.compliance.verdicts import VideoVerdict as VV
 from sopverify.config import Config
@@ -12,6 +11,8 @@ from sopverify.features.provider import ArrayFeatureProvider
 from sopverify.pipeline import run
 from sopverify.procedure.loader import load_procedure
 from sopverify.video.timegrid import make_grid
+
+from helpers import make_record, planted_features, write_toy_procedure
 
 STEP_IDS = ["A", "B", "C", "D"]
 

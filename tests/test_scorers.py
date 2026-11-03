@@ -1,11 +1,12 @@
 import numpy as np
 import pytest
 
-from helpers import planted_features, step
 from sopverify.config import Config
 from sopverify.data.records import ExecutionRef
 from sopverify.state.scorers import make_scorer
 from sopverify.state.types import DemoData
+
+from helpers import planted_features, step
 
 T = np.arange(0, 120, 0.5)
 STEPS = [step("A"), step("B")]

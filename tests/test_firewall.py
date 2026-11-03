@@ -32,10 +32,11 @@ def test_no_eval_imports(target):
 
 
 def test_pipeline_refuses_oracle_and_records(tmp_path):
-    from helpers import make_record, write_toy_procedure
     from sopverify.config import Config
     from sopverify.pipeline import FirewallError, run
     from sopverify.procedure.loader import load_procedure
+
+    from helpers import make_record, write_toy_procedure
 
     proc = load_procedure(write_toy_procedure(tmp_path))
     rec = make_record()

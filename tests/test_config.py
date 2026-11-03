@@ -58,3 +58,12 @@ def test_experiment_configs_load(repo, name):
     assert exp.variants
     for cfg in exp.variants.values():
         assert cfg.run_name and cfg.run_name.startswith(exp.name)
+
+
+def test_experiment_base_overrides(repo):
+    from sopverify.config import parse_set_args
+
+    ov = parse_set_args(["features.crop=full", "demos.k=3"])
+    assert ov == {"features.crop": "full", "demos.k": 3}
+    exp = load_experiment(repo / "configs" / "experiments" / "E3_scorers.yaml", overrides=ov)
+    assert all(c.features.crop == "full" and c.demos.k == 3 for c in exp.variants.values())

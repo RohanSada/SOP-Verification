@@ -25,9 +25,13 @@ def test_sample_execution(catalog):
     assert r.has_anomaly and set(r.anomaly_frac) == {"L", "R"}
 
 
+def _full(catalog) -> bool:
+    return len(catalog.execution_ids()) > 10  # full annotations vs the 3-execution quick-start sample
+
+
 def test_pool_and_vocab(catalog, repo):
     ids = catalog.execution_ids()
-    assert len(ids) == 45
+    assert len(ids) == 45 if _full(catalog) else len(ids) >= 1
     proc = load_procedure(repo / "procedures" / "impact_reassembly_A")
     vocab_ids = {v["id"] for v in catalog.psr_vocab}
     assert vocab_ids == proc.vocab.psr_ids()
@@ -40,6 +44,8 @@ def test_ref_has_no_annotations(catalog):
 
 
 def test_split_plan_and_gt(catalog, repo):
+    if not _full(catalog):
+        pytest.skip("needs the full annotations")
     cfg = load_config(repo / "configs" / "default.yaml")
     recs = catalog.records(catalog.execution_ids())
     plan = make_split_plan(recs, cfg.demos, cfg.splits)
@@ -48,3 +54,24 @@ def test_split_plan_and_gt(catalog, repo):
     req = proc.requires("grouped")
     gts = [compute_gt(r, proc.steps("grouped"), req) for r in recs]
     assert sum(not g.compliant for g in gts) >= 4  # LE06AS03 never finishes the adapter plate
+
+
+def test_sample_video_and_features(catalog):
+    """On the quick-start sample (or full data): real video decodes on the grid; shipped features map to frames."""
+    import numpy as np
+
+    from sopverify.features.shipped import load_feature_array
+    from sopverify.video.decode import decode_grid, probe
+    from sopverify.video.timegrid import make_grid
+
+    ref = catalog.ref("AL07EJ17_Reassembly_A_002")
+    if not ref.video_path:
+        pytest.skip("no front video available")
+    info = probe(ref.video_path)
+    assert info.fps == pytest.approx(ref.fps, rel=0.01)
+    assert abs(info.n_frames - ref.n_frames) <= 2, (info.n_frames, ref.n_frames)
+    frames = decode_grid(ref.video_path, make_grid(10.0, 2.0), fps=ref.fps)
+    assert frames.shape[0] == 20 and frames.shape[1:3] == (info.height, info.width)
+    if "VideoMAEv2" in ref.shipped_features:
+        f = load_feature_array(ref.shipped_features["VideoMAEv2"], 1408)
+        assert abs(f.shape[0] - ref.n_frames) <= 32 and np.isfinite(f).all()

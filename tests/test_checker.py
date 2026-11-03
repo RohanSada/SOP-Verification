@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import pytest
 
-from helpers import step
 from sopverify.compliance.checker import check
 from sopverify.compliance.verdicts import StepVerdict as V
 from sopverify.compliance.verdicts import VideoVerdict as VV
 from sopverify.config import CheckerConfig
 from sopverify.temporal.smoothing import StepEstimate
+
+from helpers import step
 
 CFG = CheckerConfig(tau_low=0.3, order_tolerance_s=5.0)
 

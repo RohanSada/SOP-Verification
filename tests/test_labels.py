@@ -1,9 +1,10 @@
 import numpy as np
 
-from helpers import planted_features, step
 from sopverify.config import LabelsConfig
 from sopverify.state.labels import EXCL, NEG, POS, build_design, frame_labels
 from sopverify.state.types import DemoData
+
+from helpers import planted_features, step
 
 
 def test_margins_and_excluded_band():

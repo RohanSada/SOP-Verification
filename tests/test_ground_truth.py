@@ -1,11 +1,12 @@
 import pytest
 
-from helpers import chain_steps, make_record
 from sopverify.config import TruncationConfig
 from sopverify.eval.ground_truth import compute_gt, diagnostics, pool_completions
 from sopverify.eval.truncation import make_truncations
 from sopverify.procedure.gt_mapping import step_completion
 from sopverify.procedure.schema import GTMapping, Step
+
+from helpers import chain_steps, make_record
 
 REQ = {"A": [], "B": ["A"], "C": ["B"], "D": ["A"]}
 

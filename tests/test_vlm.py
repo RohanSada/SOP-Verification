@@ -4,7 +4,6 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from helpers import chain_steps
 from sopverify.compliance.checker import check
 from sopverify.compliance.verdicts import StepVerdict as V
 from sopverify.config import Config, VLMConfig
@@ -15,6 +14,8 @@ from sopverify.vlm.backend import FakeBackend, PromptLogger, VLMRequest
 from sopverify.vlm.parsing import extract_json
 from sopverify.vlm.scorer_impl import VLMStateScorer, answer_to_prob, run_with_retries
 from sopverify.vlm.verifier import VLMVerifier
+
+from helpers import chain_steps
 
 
 class FakeFrames:

@@ -359,8 +359,9 @@ def run_experiment(
     scorer_kwargs_factory: Callable[[Config, Context], dict[str, Any]] | None = None,
     progress: Callable[[str], None] | None = None,
     vlm_backend: Any | None = None,
+    overrides: dict[str, Any] | None = None,
 ) -> dict[str, dict[str, Any]]:
-    exp = load_experiment(path, only)
+    exp = load_experiment(path, only, overrides)
     out: dict[str, dict[str, Any]] = {}
     ctx_cache: dict[tuple, Context] = {}
     for vname, cfg in exp.variants.items():

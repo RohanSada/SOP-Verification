@@ -1,10 +1,11 @@
 import networkx as nx
 import pytest
 
-from helpers import chain_steps, step, write_toy_procedure
 from sopverify.procedure import graph as G
 from sopverify.procedure.loader import GraphSourceUnavailable, load_procedure
 from sopverify.procedure.schema import GTMapping, Step
+
+from helpers import chain_steps, step, write_toy_procedure
 
 
 def test_validation_detects_problems():
