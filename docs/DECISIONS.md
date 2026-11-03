@@ -26,7 +26,7 @@ Where the data contradicted the spec, or the spec left a choice open. Newest dec
 | D-019 | `inferred_demos` uses `min_support = K`. | With K = 2 the default of 5 yields no edges at all. |
 | D-020 | Official PSR evaluator: only step F1 and delay are reused (`eval/official.py`). | POS lives inside its `main()`. |
 | D-021 | No IMPACT data, frames, features or reports are committed (`.gitignore`). `vocab.yaml` holds only label names. The repo is public. | CC BY-NC-SA 4.0. |
-| D-022 | Dependency versions are lower bounds for now. The exact Colab set will be recorded here from notebook 00's output. | ⏳ pending the first Colab run. |
+| D-022 | Dependency versions are lower bounds in `pyproject.toml`. Working Colab set (notebook 00, 2026-11-03): Python 3.13.16, torch 2.11.0+cu130, transformers 5.22.0, numpy 2.4.6, scipy 1.16.3, pandas 2.2.3, scikit-learn 1.6.1, pydantic 2.14.1, av 19.0.2, opencv 4.14.0, plotly 5.24.1, gradio 6.31.0, networkx 3.7, huggingface_hub 1.33.0; GPU A100-SXM4-40GB. Pins will be added once the full pipeline has run on this set. | Spec 4.3: use Colab's preinstalled torch. |
 | D-023 | Time basis: grid `t_k = k / sample_fps` with `t < duration`. The frame on screen at t is `floor(t·fps)`. Shipped VideoMAEv2 row k ↔ frame k. | One rule everywhere (`video/timegrid.py`). |
 | D-024 | Expertise is unknown until the release metadata is read. The parser is best-effort, and `data.expertise_overrides` holds manual fixes. | Not in the GitHub annotations. |
 | D-025 | Evidence keyframe: completion + 3 s if done, else the time of max score, clipped inside the video. | Spec 8.7, extended to not-done steps. |

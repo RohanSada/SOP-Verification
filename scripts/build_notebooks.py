@@ -62,7 +62,9 @@ It mounts Drive, installs the repo and checks that everything imports.
 **Paste back:** the version block printed at the end, so it can be recorded in `docs/DECISIONS.md`."""),
     *setup_cells(),
     code("!sopverify --help\n!sopverify info"),
-    code("!python -m pytest -q -m \"not data and not gpu\" 2>&1 | tail -3"),
+    code("!python -m pytest -q -o addopts=\"\" -m \"not data and not gpu\" 2>&1 | tail -3"),
+    md("GPU check: downloads `facebook/dinov2-base` (~350 MB) and encodes a few frames on the A100."),
+    code("!python -m pytest -q -o addopts=\"\" -m gpu -rs 2>&1 | tail -3"),
     code('''import importlib, platform, subprocess
 pkgs = ["torch", "transformers", "numpy", "scipy", "pandas", "sklearn", "pydantic", "av", "cv2", "plotly", "gradio",
         "networkx", "huggingface_hub"]
