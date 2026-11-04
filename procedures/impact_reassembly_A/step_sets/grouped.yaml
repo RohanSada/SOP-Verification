@@ -1,5 +1,5 @@
 step_set: grouped
-status: "DRAFT - pending user review (M2 gate). 5 steps, decision D-007."
+status: "APPROVED by the user (2026-11-04). 5 steps, decision D-007."
 description: >
   One step per major sub-assembly. Members are PSR install events; a step completes when
   its LAST member event completes. IMPACT annotates all members of a group at (almost) the
@@ -45,8 +45,8 @@ steps:
     name: "Screw on anti-vibration handle"
     description: "Screw the anti-vibration handle into the side of the gearbox housing."
     end_state: "The black anti-vibration handle is screwed into the side of the gearbox housing and is no longer in its storage bin."
-    # Physical dependency only (the handle screws into the housing). The pictorial manual
-    # shows the handle last; use requires: [G4] to enforce that (open question for the M2 gate).
+    # Physical dependency only (the handle screws into the housing). The pictorial manual shows
+    # the handle last, but the user approved not enforcing that (2026-11-04, D-028).
     requires: [G1]
     required: true
     visually_verifiable: true

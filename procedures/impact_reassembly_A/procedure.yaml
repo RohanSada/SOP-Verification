@@ -1,7 +1,7 @@
 procedure_id: impact_reassembly_A
 name: "Angle grinder reassembly (Fein CG15-125BL, IMPACT Model A)"
 sop_text: sop.md
-sop_status: "DRAFT - written from IMPACT step names and the pictorial manual on the IMPACT project page; pending user review (M2 gate)"
+sop_status: "Reviewed by the user (2026-11-04). Written from IMPACT step names and the pictorial manual on the IMPACT project page."
 default_step_set: grouped
 step_sets:
   grouped: step_sets/grouped.yaml

@@ -1,6 +1,6 @@
 # SOP: Angle grinder reassembly (Fein CG15-125BL, IMPACT Model A)
 
-> **Status: DRAFT, pending user review (M2 gate).** IMPACT does not release the instruction
+> **Status: reviewed by the user (2026-11-04).** IMPACT does not release the instruction
 > manual as text. This SOP is written from the IMPACT step labels (PSR, TAS-S) and the pictorial
 > "Manual Book" figure on the IMPACT project page, which shows the standardized installation order.
 
@@ -20,8 +20,7 @@ anti-vibration handle. Tools: screwdrivers and an open-end wrench.
 4. **Install the locking lever assembly (G4).** Requires step 3. Mount the locking lever with its
    spring and washer and tighten the lever screw.
 5. **Screw on the anti-vibration handle (G5).** Requires step 1, since it screws into the gearbox housing.
-   The manual shows it as the last step. Whether to *require* it last is an open question for
-   review (`requires: [G4]` would enforce it).
+   The manual shows it as the last step; doing it earlier is not treated as an order violation.
 6. Return the tools to their place.
 
 ## Completion

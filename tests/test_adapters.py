@@ -76,3 +76,15 @@ def test_read_ppr_and_atr(tmp_path):
     spans = A.read_atr({"L": tmp_path / "atr.npy"}, fps=2.0, type_names=["ERROR_TEMPORAL", "B", "C", "D", "E", "ERROR_PROCEDURAL"])
     assert len(spans) == 1 and spans[0].start_s == 1.0 and spans[0].end_s == 3.0
     assert spans[0].types == ["temporal", "procedural"]
+
+
+def test_expertise_from_excel(tmp_path):
+    import pandas as pd
+
+    from sopverify.data.impact.catalog import find_expertise
+
+    df = pd.DataFrame({"Participant": ["AL07EJ17", "ER07AD15", "KI05KO01"], "Group": ["Expert", "novice", ""],
+                       "Mental demand": [40, 55, 30]})
+    p = tmp_path / "NASA_TLX_anonymized.xlsx"
+    df.to_excel(p, index=False)
+    assert find_expertise([p]) == {"AL07EJ17": "expert", "ER07AD15": "novice"}

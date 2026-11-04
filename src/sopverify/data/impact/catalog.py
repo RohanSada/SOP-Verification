@@ -251,8 +251,8 @@ def find_expertise(metadata_files: list[Path]) -> dict[str, str]:
     """Best-effort read of participant expertise from release metadata.
 
     The metadata format is not documented in the IMPACT GitHub repo (DATA_NOTES 5.2 #4),
-    so this scans CSV/TSV/JSON/text rows for a participant id together with an
-    expertise word. Anything it cannot resolve stays "unknown"; use
+    so this scans CSV/TSV/JSON/text/Excel rows for a participant id together with an
+    expertise word. (The v1.1 release ships only `metadata/NASA_TLX_anonymized.xlsx`.) Anything it cannot resolve stays "unknown"; use
     `data.expertise_overrides` in the config to fill gaps once the format is known.
     """
     out: dict[str, str] = {}
@@ -264,6 +264,8 @@ def find_expertise(metadata_files: list[Path]) -> dict[str, str]:
                 text = p.read_text(errors="ignore")
                 dialect = "excel-tab" if p.suffix.lower() == ".tsv" or "\t" in text[:2000] else "excel"
                 rows = [" ".join(r) for r in csv.reader(text.splitlines(), dialect=dialect)]
+            elif p.suffix.lower() in (".xlsx", ".xls"):
+                rows = _excel_rows(p)
             else:
                 continue
         except Exception as e:  # pragma: no cover - unexpected file content
@@ -275,6 +277,18 @@ def find_expertise(metadata_files: list[Path]) -> dict[str, str]:
             if len(set(parts)) == 1 and len({_LEVEL_MAP[x.lower()] for x in levels}) == 1:
                 out.setdefault(parts[0], _LEVEL_MAP[levels[0].lower()])
     return out
+
+
+def _excel_rows(path: Path) -> list[str]:
+    """Every row of every sheet as one space-joined string (header names repeated per row)."""
+    sheets = pd.read_excel(path, sheet_name=None, dtype=str)
+    rows: list[str] = []
+    for df in sheets.values():
+        cols = [str(c) for c in df.columns]
+        rows.append(" ".join(cols))
+        for rec in df.fillna("").itertuples(index=False):
+            rows.append(" ".join(f"{c} {v}" for c, v in zip(cols, rec)))
+    return rows
 
 
 def _json_rows(obj: Any) -> list[str]:

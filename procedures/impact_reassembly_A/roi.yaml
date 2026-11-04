@@ -5,5 +5,5 @@
 box: [440, 300, 480, 360]
 frame_size: [1280, 720]
 confirmed: false
-notes: "Covers the grey work area, the hands and the device, and the tops of the part bins. Pending user confirmation (M2 gate)."
+notes: "Covers the grey work area, the hands and the device, and the tops of the part bins. Pending user confirmation in notebook 02 section 1."
 step_overrides: {}

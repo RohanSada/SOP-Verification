@@ -155,6 +155,16 @@ NOTEBOOKS["02_extract_features"] = [
    Everything is cached on Drive by config hash and skips finished executions.
 3. Check the temporal alignment of shipped features vs our frames."""),
     *setup_cells("app,dev"),
+    md("### 0. Expertise labels 📋\nThe only metadata file in the release is `NASA_TLX_anonymized.xlsx`. This prints "
+       "its sheets so we can see whether it says who is an expert. Takes a few seconds."),
+    code('''import glob, pandas as pd
+from sopverify.data.impact.catalog import Catalog
+for p in sorted(glob.glob(os.environ["SOPVERIFY_DATA_ROOT"] + "/metadata/*.xls*")):
+    for name, df in pd.read_excel(p, sheet_name=None).items():
+        print(f"== {p.split('/')[-1]} | sheet {name!r} | {df.shape[0]} rows x {df.shape[1]} columns")
+        print("columns:", list(df.columns))
+        print(df.head(20).to_string(), "\n")
+print("expertise parsed:", Catalog.from_paths(os.environ["SOPVERIFY_DATA_ROOT"], None).expertise)'''),
     md("### 1. ROI preview"),
     code('''from sopverify.data.impact.catalog import Catalog
 from sopverify.procedure.loader import load_procedure

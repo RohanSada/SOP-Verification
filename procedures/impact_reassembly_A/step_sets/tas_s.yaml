@@ -1,6 +1,6 @@
 # Generated draft; edit freely.
 step_set: tas_s
-status: DRAFT - pending user review (M2 gate)
+status: Reviewed by the user (2026-11-04)
 description: The 13 TAS-S labels that occur in Model A reassembly. Completion = end of the LAST segment with the label. Action-only
   labels (retrieve/store/finish) are not visually verifiable and not required (D-009).
 steps:

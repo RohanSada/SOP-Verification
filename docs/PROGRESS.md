@@ -4,17 +4,11 @@ Legend: ✅ done and verified · 🟡 code done, needs a Colab/GPU run or a user
 Working agreement (user, 2026-11-03): build all code now; review items stay drafts until approved; no experiment
 beyond E0/E1 is run before the M2 gate.
 
-## Review gates waiting for you
+## Review gates
 
-1. **M1: `docs/DATA_NOTES.md`.** Please read it, especially the corrected facts: 1280×720, ~3.7 min videos, no clean runs,
-   5-step grouping, and the end-of-video issue.
-2. **M2: grouped steps.** `procedures/impact_reassembly_A/step_sets/grouped.yaml` (5 steps, end-state texts).
-3. **M2: graph.** `sopverify procedure render procedures/impact_reassembly_A` writes `graph_grouped.svg`. Open question:
-   should the handle (G5) be *required* last (`requires: [G4]`, as the pictorial manual shows), or only after the rotor
-   (`[G1]`, the physical dependency; current draft)?
-4. **M2: ROI.** The draft box `[440, 300, 480, 360]` was placed on a half-resolution frame. Confirm it in notebook 02 §1,
-   then set `confirmed: true` in `roi.yaml`.
-5. **M2: SOP text.** `procedures/impact_reassembly_A/sop.md` is a draft.
+- ✅ M1: `docs/DATA_NOTES.md` reviewed (2026-11-04).
+- ✅ M2: grouped steps, graph (G5 requires only G1) and SOP text approved (2026-11-04, D-028).
+- ⏳ M2: **ROI**: confirm the box in notebook 02 §1, then set `confirmed: true` in `roi.yaml`.
 
 ## M0: Scaffold ✅
 - Done: layout, `pyproject.toml`, pydantic config with env expansion, layered experiment files and per-stage hashes,
@@ -23,19 +17,21 @@ beyond E0/E1 is run before the M2 gate.
   that skip without data or CUDA.
 - 🟡 Run notebook 00 on Colab and paste back the version block (goes into D-022).
 
-## M1: Data discovery and adapters 🟡
+## M1: Data discovery and adapters ✅
 - Done: `discover.py` (pattern-based index), `adapters.py` (TAS-S, PSR, ASR, PPR, ATR → seconds), `catalog.py`,
   `splits.py`, `download.py` (whole bundles + range-request member extraction), notebook 01.
 - Verified on the real GitHub-released annotations: `sopverify data summarize` prints the 45-execution pool;
   `pytest -m data` passes; every 5.2 item is answered or marked ⏳ in DATA_NOTES.
-- Remaining: notebook 01 on Colab (bundles, metadata/expertise, video and feature layout checks). **[GATE]**
+- Verified on Colab (2026-11-03): annotations bundle, sample tests (5 passed), all 45 front videos (14.7 GB) and
+  VideoMAEv2 files (2.2 GB) downloaded; 1280×720 @ 30 fps; feature T = frame count for all 45.
+- Remaining: expertise labels (only a NASA-TLX Excel file in `metadata/`; notebook 02 §0).
 
-## M2: Procedure package 🟡 (draft)
+## M2: Procedure package 🟡 (approved except ROI)
 - Done: `psr` (17), `tas_s` (13, 5 verifiable) and `grouped` (5) step sets with GT mappings; manual graphs;
   `vocab.yaml` generated from IMPACT label files; draft `sop.md`; draft `roi.yaml`; validate, render, stats and
   roi-preview commands.
 - Verified: `sopverify procedure validate` passes for all three step sets; graphs render to SVG.
-- Remaining: **[GATE]** your approval of the grouped steps, graph and ROI.
+- Approved by the user 2026-11-04 (D-028). Remaining: ROI confirmation (notebook 02 §1).
 
 ## M3: Video, time grid and features 🟡
 - Done: PyAV grid decoding (tested on a synthetic video), ROI crop and letterbox resize, frame cache (scratch),

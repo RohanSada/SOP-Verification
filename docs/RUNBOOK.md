@@ -26,89 +26,87 @@ runtime for 01 and 03, which saves compute units: the A100 costs roughly 12 unit
 
 ---
 
-## Step 1: notebook `00_setup_colab` (A100, ~10 min)
-It installs the code and runs the 136 fast tests.
+## Done so far
+- ✅ Step 1 `00_setup_colab` and Step 2 `01_download_and_discover` (2026-11-03): all 45 front videos (14.7 GB) and
+  VideoMAEv2 files (2.2 GB) are on Drive, every check passed.
+- ✅ Step 3 reviews (2026-11-04): DATA_NOTES, the 5 grouped steps, the graph (G5 needs only G1) and the SOP text approved.
 
-Check: the pytest line ends in `passed` with no `failed`, and `sopverify info` shows `CUDA True (NVIDIA A100…)`.
-
-📋 **Send me:** the pytest summary line and the whole output of the last cell (Python, package versions, GPU).
-
-## Step 2: notebook `01_download_and_discover` (CPU, ~1–2 h, mostly downloading)
+## Step 4: notebook `02_extract_features` (A100, ~45–75 min)
+Open it from GitHub (so you get the latest cells), choose **A100 GPU**, then run the cells **one section at a time**,
+not Run all. Section 1 may need a decision.
 
 | Section | What happens | What you should see |
 |---|---|---|
-| 1 | Downloads the 8 MiB annotations bundle (checksum-verified) into Drive | `extracted … into …/IMPACT-v1.1`, then a folder listing |
-| 2 📋 | Inventories every file found | A table of kinds (asr, psr, tas_s, …) with counts |
-| 3 📋 | Prints the `metadata/` files, which should say who is expert or novice | File contents plus `expertise parsed: {...}` |
-| 4 📋 | Pool table | **45 executions, 13 participants**. If far fewer, the next cell copies the annotations from the IMPACT GitHub repo and re-counts; send me that output too |
-| 5 📋 | Downloads the 2.8 GB sample to local disk and runs the real-data tests | `N passed` (some skips are fine; `-rs` lists why) |
-| 6 📋 | Reads the table of contents of the big video and feature archives (no full download) | Member counts, pool size in GB, two example names per archive |
-| 7 | Downloads only the 45 front-view videos and VideoMAEv2 feature files (resumable) | Lines like `extracted videos/front/…mp4`, then `45 of 45 files present` twice |
-| 8 📋 | Checks resolution, fps and feature shapes for every video | A table, plus `w h fps` counts (expected 1280 720 30) and `feat_T - asr_frames` (expected ~0) |
-| 9 📋 | Final counts and Drive usage | Last lines of the summary and `du -sh` |
+| Setup (4 cells) | Drive, code, paths | Last line shows the latest commit; a dict of paths |
+| 0 📋 | Prints the only metadata file (`NASA_TLX_anonymized.xlsx`) | Sheet names, columns and the first rows, then `expertise parsed: {...}` |
+| 1 📋 | Three frames from different executions with the green crop box | The box should cover the grey work area, the hands and the device in all three |
+| 2 | Three extraction cells: DINOv2 on the crop, DINOv2 on the full frame, shipped VideoMAEv2 | A progress bar per cell, ending `cached 45/45; failed 0`. The first DINOv2 cell copies the videos to local disk and decodes them (the slow part, ~15–25 min); the second reuses the copies; the third takes ~1 min |
+| 3 📋 | Coverage and speed | `45/45 cached` for all three, and a DINOv2 speed line |
+| 4 📋 | Alignment check | A table where `best_lag_s` is 0 or very close (±0.5 s) |
 
-If section 7 is interrupted, re-run the Setup cells and section 7; finished files are skipped.
+**Decision at section 1:**
+- If the box covers the work area in all three frames, tell me **"ROI approved"** and go straight on to section 2.
+- If not, change `BOX = [x, y, w, h]` at the top of that cell and re-run it until it looks right. x and y are the box's
+  top-left corner, in pixels of a 1280×720 frame; the yellow ruler marks every 160 px across and 120 px down. Then **stop**
+  and send me the final numbers plus `exports/roi_preview_0.jpg` to `_2.jpg`. I'll update the repo. After that, re-run the
+  Setup cells (they pull my change) and continue from section 2. The feature cache is tied to the box, so extracting
+  with the old box would be wasted.
 
-📋 **Send me:** outputs of sections 2, 3, 4 (plus the fallback cell if it ran), 5, 6, 8 and 9. Also attach
-`exports/inventory_summary.md` and `exports/pool_summary.csv`. On errors, paste the full error text.
+If the runtime disconnects during section 2, re-run Setup and the same cell: finished videos are skipped.
 
-## Step 3: reviews (you can do these while step 2 downloads)
-Read on GitHub (branch `claude/nifty-mccarthy-5suut3`) and reply in chat:
-1. `docs/DATA_NOTES.md`: anything wrong or surprising?
-2. `procedures/impact_reassembly_A/step_sets/grouped.yaml`: approve the 5 steps, or tell me the edits.
-3. `procedures/impact_reassembly_A/graph_grouped.svg`: should **G5 (handle)** only need G1 (current draft), or come last
-   (after G4, as the pictorial manual shows)?
-4. `procedures/impact_reassembly_A/sop.md`: OK as a draft?
+📋 **Send me:** sections 0, 1 (your decision or new box), 3 and 4, and any error text.
 
-Wait for my confirmation before step 5. Experiment results depend on these choices.
+## Step 5: notebook `03_run_experiments` (CPU runtime, ~1–2 h)
+Start after Step 4 shows `45/45 cached` for all three feature types (and after my reply if you changed the box).
+Features are read from Drive, so no GPU is needed. Choose the standard CPU runtime, then **Runtime → Run all**.
 
-## Step 4: notebook `02_extract_features` (A100, ~1–2 h)
-1. **Section 1 (ROI):** three frames with a green box. The box should cover the grey work area, the hands and the device
-   in every frame, without much empty background.
-   - Looks right → tell me **"ROI approved"** and continue with section 2.
-   - Needs changes → edit `BOX = [x, y, w, h]` in that cell and re-run until it looks right. Send me the final numbers and
-     the images `exports/roi_preview_0.jpg` … `_2.jpg`. **Wait until I push the new box** before section 2, because the
-     feature cache is keyed by the box.
-2. **Section 2:** three extraction cells: DINOv2 crop, DINOv2 full frame, shipped VideoMAEv2. Resumable.
-3. **Section 3 📋:** expect `45/45 cached` for all three, plus a speed line.
-4. **Section 4 📋:** the alignment table. `best_lag_s` should be about 0.
+| Cell | What happens | Rough time |
+|---|---|---|
+| E0, E1 | Oracle check (must be all 1.00) and time-prior baseline | ~3 min |
+| E2 | Three feature types with the linear probe | ~10–15 min |
+| E3 | Prints `E2 winner: …`, then prototype / linear probe / kNN on those features | ~10–15 min |
+| E4–E6 | Prints `E3 winner: …`, then 1/2/3 demos, the three step sets and the three graph sources | ~30–60 min |
+| Tables | Shows all result tables and saves `exports/RESULTS_tables.md` | <1 min |
+| Best config | Copies the E3 winner's config to `exports/best.yaml` | <1 min |
 
-📋 **Send me:** sections 3 and 4.
-
-## Step 5: notebook `03_run_experiments` (CPU, ~1–3 h, after my go-ahead from step 3)
-It runs E0, E1 and E2, picks the E2 winner on the dev split, runs E3, picks the E3 winner, then runs E4, E5 and E6. It
-writes the tables and saves `exports/best.yaml`.
+Every experiment line ends with something like `E2_features__dinov2_roi: {'nd_recall': …}`. If a cell fails, send me the
+error and don't continue. Later cells use earlier results.
 
 📋 **Send me:**
-- The "E2 winner" and "E3 winner" lines.
-- `exports/RESULTS_tables.md` (attach it).
-- `exports/best.yaml`.
-- From `MyDrive/sopverify/runs/E3_scorers__<winner>/`: `per_step.csv` and `per_step_dev.csv`.
-- Any error text.
+- The two lines starting `E2 winner:` and `E3 winner:`.
+- `exports/RESULTS_tables.md` and `exports/best.yaml` (attach them).
+- `per_step.csv` and `per_step_dev.csv` from `MyDrive/sopverify/runs/E3_scorers__<winner>/`, where `<winner>` is the
+  name printed after `E3 winner:`.
 
-I then commit `configs/best.yaml` and update `docs/RESULTS.md`.
+I'll then commit `configs/best.yaml`, fill in `docs/RESULTS.md`, and tell you if anything should be re-run.
 
 ## Step 6: notebook `04_vlm` (fresh A100 runtime, ~2–3 h)
-1. Run Setup, then the **Install vLLM** cell. Then **Runtime → Restart session**, run Setup again, and continue below the
-   install cell.
-2. **Model check 📋:** prints the model id and revision.
-3. **Smoke test 📋:** prints one JSON answer from the model.
-4. **E7:** the long cell. Prints runtime and VLM statistics per variant.
-5. **Tables 📋:** prints `RESULTS_E7.md`.
+Start after Step 5. This tests the Qwen3-VL model as a scorer and as a checker for uncertain steps (experiment E7).
+1. Open from GitHub, choose **A100 GPU**, run the 4 Setup cells.
+2. Run **Install vLLM** (~5 min). It replaces PyTorch, so then do **Runtime → Restart session**, run the 4 Setup cells
+   again, and continue from the cell **after** the install cell. Don't re-run the install.
+3. 📋 **Model check:** prints `Qwen/Qwen3-VL-8B-Instruct`, a revision hash and `image-text-to-text`.
+4. 📋 **Smoke test:** loads the model (~3–5 min the first time), then prints one JSON answer with G1–G5.
+5. **E7:** the long cell (~1.5–2.5 h). Keep the tab open.
+6. 📋 **Tables:** prints the E7 table and saves `exports/RESULTS_E7.md`.
 
-If vLLM fails to install or load, send me the error. There is a transformers fallback.
+If vLLM fails to install or load (an error in step 2 or 4), send me the error; I'll switch you to the slower fallback.
 
-📋 **Send me:** outputs of 2–5 (attach `exports/RESULTS_E7.md`).
+📋 **Send me:** the outputs of 3, 4 and 5 (the per-variant timing lines) and `exports/RESULTS_E7.md`.
 
 ## Step 7: notebook `05_app` (A100, ~15 min, after I push `configs/best.yaml`)
-1. Run all. Open the `https://….gradio.live` link it prints. Share it only privately: IMPACT frames are non-commercial.
-2. **Run** tab → pick an execution marked `[test]` → **Run** → the **Report** tab opens.
-3. Try an upload: download one front video from Drive (`MyDrive/sopverify/data/IMPACT-v1.1/videos/front/…`), choose
-   **Upload video** and run it.
+1. Open from GitHub, A100, **Run all**. The last cell prints a `https://….gradio.live` link. Open it, and keep it private
+   (IMPACT frames are non-commercial).
+2. **Run** tab: pick an execution marked `[test]`, keep the "Best feature scorer" preset, click **Run**. The **Report** tab
+   opens with the verdict, step table, timeline, evidence frames and graph.
+3. Tick **Show ground truth** to compare against the annotations.
+4. Upload test: download one front video from Drive (`MyDrive/sopverify/data/IMPACT-v1.1/videos/front/`, ~300 MB),
+   choose **Upload video**, select it and click **Run**. Expect 1–3 min, since its features are computed on the fly.
+5. Stop the last cell to shut the app down.
 
 📋 **Send me:** the "Done in X s" time for both runs, screenshots of the Report tab, and any errors.
 
 ## Step 8: wrap-up
-I write the M8 analysis (headline table, per-step breakdown, failure cases, which steps to mark not verifiable, V2
-ideas). For the failure cases I may ask you to run `sopverify run --execution <id>` for a few named executions and send
-the `report.html` files.
+I write the final analysis in `docs/RESULTS.md`: headline table, per-step breakdown, failure cases, steps to mark not
+verifiable, and V2 ideas. For the failure cases I may ask you to run a couple of named executions in the app and send
+their `report.html` files.

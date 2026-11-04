@@ -1,6 +1,6 @@
 # Generated draft; edit freely.
 step_set: psr
-status: DRAFT - pending user review (M2 gate)
+status: Reviewed by the user (2026-11-04)
 description: One step per PSR 'Install <component>' event (17). 'Incorrectly installed' and 'Remove' events are not SOP steps
   (D-005). Prerequisites mirror the grouped graph at component level; adapter_plate and bearing_plate complete with their
   last screw.

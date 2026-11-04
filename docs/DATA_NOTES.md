@@ -1,13 +1,13 @@
 # DATA_NOTES: IMPACT v1.1, Model A Reassembly, front view
 
-Status: **M1 review gate.** Items marked ✅ were verified on real files. Items marked ⏳ still need the Hugging Face
-release bundles. Run `notebooks/01_download_and_discover.ipynb` and paste back its 📋 outputs to close them.
+Status: **M1 complete, reviewed by the user (2026-11-04).** ✅ = verified on real files. The release bundles were
+inspected with `notebooks/01_download_and_discover.ipynb` on Colab (2026-11-03). The only open item is the expertise
+labels (#4, see notebook 02 §0).
 
-**Sources inspected (2026-11-03).** A clone of the IMPACT GitHub repo (`Kratos-Wen/IMPACT`, commit `4fed5fa`). Its
-`dataset/` folder ships the v1.1 task annotations: PSR, ASR, TAS, PPR, ATR, AF-S, CV and the official splits. Hugging Face
-and arXiv were not reachable from the build sandbox, so the release bundles (metadata, videos, features) are not
-inspected yet. One real front-view frame was available: the IMPACT project page's `annotation_demo.mp4`, a
-half-resolution front-view panel. The pictorial "Manual Book" figure was also available.
+**Sources inspected.** (1) A clone of the IMPACT GitHub repo (`Kratos-Wen/IMPACT`, commit `4fed5fa`), whose `dataset/`
+folder ships the v1.1 task annotations and official splits. (2) The Hugging Face v1.1 release on Colab: the annotations
+bundle, the quick-start sample, and the 45 pool front videos and VideoMAEv2 features, extracted with range requests.
+(3) The IMPACT project page's `annotation_demo.mp4` (half-resolution front-view panel) and pictorial "Manual Book".
 
 The adapters (`src/sopverify/data/impact/`) find files by name pattern, so they work on both the GitHub `dataset/` layout
 and the release `annotations/` layout. `tests/test_data_impact.py` runs them on the real files.
@@ -21,7 +21,7 @@ Conversion: `t = frame / fps`, implemented in `adapters.frames_to_seconds` and u
 
 | Type | File | Format |
 |---|---|---|
-| TAS-S | `TAS/groundTruth_TAS-S/<vid>.txt` (release: `annotations/TAS-S/…` ⏳) | text, **one label per frame** (5214 lines for a 5214-frame video); labels in `mapping_TAS-S.txt` (26 classes, `0 NULL` … `25 FINISH_ANGLE_GRINDER_ASSEMBLY`) |
+| TAS-S | `TAS/groundTruth_TAS-S/<vid>.txt` (release: under `annotations/TAS-S/`) | text, **one label per frame** (5214 lines for a 5214-frame video); labels in `mapping_TAS-S.txt` (26 classes, `0 NULL` … `25 FINISH_ANGLE_GRINDER_ASSEMBLY`) |
 | PSR | `PSR/labels/{train,val,test}/<vid>/PSR_labels.csv` | rows `<frame>.jpg,<category_id>,<description>`, one per completion event |
 | PSR (errors) | `…/PSR_labels_with_errors.csv` | same format, plus `Incorrectly installed X` events |
 | PSR (raw) | `…/PSR_labels_raw.csv` | `<frame>.jpg,<s0>,…,<s16>`: the ASR state vector at each keyframe |
@@ -64,14 +64,15 @@ showing the standardized order. Reassembly: rotor (drive shaft with bevel gear) 
 with a wrench → adapter plate screwed on → bearing plate pushed in and screwed → locking lever with spring → anti-vibration
 handle last. `procedures/impact_reassembly_A/sop.md` is drafted from this and from the step labels, and is marked DRAFT.
 
-## 5.2 #4: Metadata ⏳ (expertise) / ✅ (rest)
+## 5.2 #4: Metadata ✅ (expertise still open)
 
 - Model A vs B, Reassembly vs Disassembly and trial number come from the execution id
   (`<participant>_<task>_<A|B>_<NNN>`). ASR also states `workflow: assemble` and `model_type: CG15-125BL`.
 - Per-execution fps, frame count and resolution are in every ASR JSON (`meta_data`).
-- **Expert vs novice is not in the GitHub annotations.** It should be in the release's `metadata/` ⏳. The catalog has a
-  best-effort parser, plus `data.expertise_overrides` in the config to fill it in by hand. Until then every execution is
-  `unknown`, and the demo rule falls back to "complete + low anomaly" (D-003).
+- **Expert vs novice is not in the annotations.** The release's `metadata/` holds a single file,
+  `NASA_TLX_anonymized.xlsx` (NASA-TLX workload questionnaire). The parser now reads Excel; notebook 02 §0 prints the
+  file to see whether it states expertise. `data.expertise_overrides` can fill it in by hand. Until then every
+  execution is `unknown`, and the demo rule ("complete + low anomaly", D-003) does not depend on it.
 
 ## 5.2 #5: Official splits ✅ (recorded, not used)
 
@@ -81,13 +82,14 @@ handle last. `procedures/impact_reassembly_A/sop.md` is drafted from this and fr
   **31 train, 5 val, 9 test**.
 - V1 uses its own participant-disjoint dev/test split (spec 9.2).
 
-## 5.2 #6: VideoMAEv2 feature layout ⏳ (documented, to verify)
+## 5.2 #6: VideoMAEv2 feature layout ✅
 
 From `docs/FEATURES.md` and `tools/features/extract_videomaev2.py`: VideoMAEv2-G (`OpenGVLab/VideoMAEv2-giant`), **1408-D,
 stored `1408 × T`, frame-aligned**. There is one feature per video frame, from a 16-frame clip centred on it (border frames
 repeated), so feature index k corresponds to frame k at time k/30 s. The bundle is 21.6 GiB for all five views, and there is
-no per-view bundle. `shipped.py` transposes when needed and resamples onto the 2 fps grid by nearest frame. Notebook 01 §8
-checks `T == n_frames` for every pool file. Notebook 02 §4 checks alignment by cross-correlating feature-change signals.
+no per-view bundle. **Verified on all 45 pool files:** stored as `.npy` named `<execution>_front.npy`, shape
+`(1408, T)` with **T exactly equal to the video frame count** (difference 0 for all 45). `shipped.py` transposes and
+resamples onto the 2 fps grid by frame index. Notebook 02 §4 additionally cross-correlates feature-change signals.
 
 ## 5.2 #7: Official evaluation code ✅
 
@@ -101,8 +103,8 @@ converts `psr` step-set verdicts into that format (F1 and delay). POS is compute
 |---|---|
 | Executions with front annotations (TAS-S + PSR + ASR) | **45** |
 | Participants | **13** (3–4 executions each) |
-| Experts | ⏳ metadata (paper: 4 experts, 9 novices across the dataset) |
-| Resolution / fps (ASR metadata) | **1280×720** for all 45 (spec said 1280×800, D-002), 30 fps |
+| Experts | not labelled in the release (paper: 4 experts, 9 novices); see #4 |
+| Resolution / fps | **1280×720, 30 fps** for all 45 videos (probed on the files; spec said 1280×800, D-002). Video frame count = ASR frame count for all 45 |
 | Duration | min 132 s, **median 224 s**, max 1025 s (spec assumed about 20 min) |
 | Executions with zero ANOMALY phases on both hands | **0**. Median anomaly segment 1–4 s; anomaly time 1–48 % per hand |
 | Demo candidates (all parts installed, no Remove, ≤ 5 % anomaly per hand) | **12** from 8 participants (D-003) |
@@ -121,6 +123,18 @@ converts `psr` step-set verdicts into that format (F1 and delay). POS is compute
 
 Real negatives are scarce, which matches the spec's risk table, so truncation negatives (spec 9.4) carry most of the
 not-done evaluation. Order support is below 10 on the test split, so it is reported with a warning.
+
+## Release bundles (Colab, 2026-11-03) ✅
+
+- `IMPACT-v1.1-annotations.zip` extracts to `annotations/{AF-S,ASR,ATR,PPR,PSR,TAS-B,TAS-S}/`, `metadata/`,
+  `README.md`, `CHANGELOG.md`, `LICENSE-DATA`, `VERSION` and `annotations/release_audit_v1.1.json`. The file names match the
+  GitHub `dataset/` copy, and the pattern-based index recognised everything (92 front ASR/PSR files, 560 TAS-S/PPR/ATR
+  files across 5 views, 182 split files).
+- `videos-front.zip`: 116 members (`IMPACT-v1.1/videos/front/<execution>_front.mp4`); the 45 pool videos total 14.7 GB.
+- `features-VideoMAEv2.zip`: 564 members (all views); the 45 pool front files total 2.2 GB.
+- Range-request extraction: 14.85 GB in 1771 requests (videos) and 2.64 GB in 316 requests (features), all CRC-checked.
+  Drive usage after download: 17 GB.
+- The quick-start sample extracts under `sample/`; adapter tests on it: 5 passed, 1 skipped (needs the full pool).
 
 ## Other findings that shaped the design
 

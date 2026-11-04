@@ -71,7 +71,7 @@ class DINOv2Extractor(FeatureExtractor):
         n_reg = int(getattr(model.config, "num_register_tokens", 0) or 0)
         with torch.inference_mode():
             for i in range(0, len(frames), self.batch_size):
-                x = torch.from_numpy(np.ascontiguousarray(frames[i : i + self.batch_size])).to(self.device)
+                x = torch.from_numpy(np.array(frames[i : i + self.batch_size], copy=True)).to(self.device)
                 x = x.permute(0, 3, 1, 2).float().div_(255.0)
                 x = (x - mean) / std
                 with torch.autocast(device_type="cuda", dtype=amp_dtype, enabled=use_amp):
